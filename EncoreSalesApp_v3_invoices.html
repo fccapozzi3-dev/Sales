@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Encore Sales App</title>
+  <style>
+    :root {
+      --bg: #07101f;
+      --surface: #0f1a2f;
+      --surface-2: #14213d;
+      --border: #24365f;
+      --text: #eef4ff;
+      --muted: #9cb0d5;
+      --blue: #0e5ab7;
+      --blue-2: #1b75d0;
+      --green: #50d890;
+      --red: #f27d7d;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #050b16 0%, #081120 100%);
+      color: var(--text);
+    }
+    .app { padding: 16px; max-width: 100%; }
+    .card {
+      background: rgba(15,26,47,.98);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    h1, h2, h3 { margin: 0 0 12px; }
+    h1 { font-size: 24px; }
+    h2 { font-size: 18px; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; }
+    .tab, button {
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      min-height: 44px;
+      white-space: nowrap;
+      -webkit-appearance: none;
+    }
+    .tab.active { background: var(--blue); color: white; }
+    .btn-blue { background: var(--blue-2); color: white; }
+    .btn-green { background: var(--green); color: #072013; }
+    .btn-red { background: var(--red); color: #260909; }
+    input, select, textarea {
+      width: 100%;
+      background: #0b1630;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      font-size: 16px;
+      -webkit-appearance: none;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 10px; border-bottom: 1px solid var(--border); text-align: left; }
+    .hidden { display: none !important; }
+    .actions { display: flex; flex-direction: column; gap: 8px; }
+    .actions button { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Encore Petroleum</h1>
+    <div class="tabs">
+      <button class="tab active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="contacts">Contacts</button>
+      <button class="tab" data-tab="quote">Quote</button>
+      <button class="tab" data-tab="history">History</button>
+    </div>
+    <section id="dashboard" class="screen"></section>
+    <section id="contacts" class="screen hidden"></section>
+    <section id="quote" class="screen hidden"></section>
+    <section id="history" class="screen hidden"></section>
+  </div>
+
+<script>
+const state = {
+  tab: 'dashboard',
+  contacts: JSON.parse(localStorage.getItem('contacts') || '[]'),
+  quotes: JSON.parse(localStorage.getItem('quotes') || '[]'),
+  currentQuote: {}
+};
+
+function save() {
+  localStorage.setItem('contacts', JSON.stringify(state.contacts));
+  localStorage.setItem('quotes', JSON.stringify(state.quotes));
+}
+
+function uid() {
+  return Math.random().toString(36).slice(2, 9);
+}
+
+function switchTab(tab) {
+  state.tab = tab;
+  document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
+  document.getElementById(tab).classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+  render();
+}
+
+function render() {
+  renderDashboard();
+  renderContacts();
+  renderQuote();
+  renderHistory();
+}
+
+function renderDashboard() {
+  document.getElementById('dashboard').innerHTML = `
+    <div class="card">
+      <h2>Contacts: ${state.contacts.length}</h2>
+      <h2>Quotes: ${state.quotes.length}</h2>
+      <button class="btn-blue" onclick="EncoreApp.switchTab('contacts')">Add Contact</button>
+      <button class="btn-blue" onclick="EncoreApp.switchTab('quote')">New Quote</button>
+    </div>`;
+}
+
+function renderContacts() {
+  let html = `<div class="card"><h2>Contacts</h2><input id="name" placeholder="Name"/><input id="phone" placeholder="Phone"/><input id="email" placeholder="Email"/><button class="btn-blue" onclick="EncoreApp.addContact()">Save</button></div>`;
+  state.contacts.forEach(c => {
+    html += `<div class="card"><div style="font-weight:bold">${c.name}</div><div>${c.phone}</div><div>${c.email}</div><button class="btn-red" onclick="EncoreApp.deleteContact('${c.id}')">Delete</button></div>`;
+  });
+  document.getElementById('contacts').innerHTML = html;
+}
+
+function renderQuote() {
+  let contactOptions = `<option value="">Select Contact</option>`;
+  state.contacts.forEach(c => {
+    contactOptions += `<option value="${c.id}">${c.name}</option>`;
+  });
+  
+  document.getElementById('quote').innerHTML = `
+    <div class="card">
+      <h2>Build Quote</h2>
+      <select id="contact">${contactOptions}</select>
+      <input id="product" placeholder="Product"/>
+      <input id="quantity" type="number" placeholder="Quantity"/>
+      <input id="price" type="number" placeholder="Price per Gallon"/>
+      <button class="btn-blue" onclick="EncoreApp.saveQuote()">Save Quote</button>
+    </div>`;
+}
+
+function renderHistory() {
+  let html = `<div class="card"><h2>Quotes</h2>`;
+  state.quotes.forEach(q => {
+    html += `<div style="padding:10px;border:1px solid #24365f;margin:10px 0;border-radius:8px"><div><b>${q.product}</b> - \$${q.total}</div><button class="btn-red" onclick="EncoreApp.deleteQuote('${q.id}')">Delete</button></div>`;
+  });
+  html += `</div>`;
+  document.getElementById('history').innerHTML = html;
+}
+
+window.EncoreApp = {
+  switchTab: switchTab,
+  addContact: function() {
+    const name = document.getElementById('name').value;
+    const phone = document.getElementById('phone').value;
+    const email = document.getElementById('email').value;
+    if (!name) return alert('Enter name');
+    state.contacts.push({ id: uid(), name, phone, email });
+    save();
+    document.getElementById('name').value = '';
+    document.getElementById('phone').value = '';
+    document.getElementById('email').value = '';
+    render();
+  },
+  deleteContact: function(id) {
+    state.contacts = state.contacts.filter(c => c.id !== id);
+    save();
+    render();
+  },
+  saveQuote: function() {
+    const contact = document.getElementById('contact').value;
+    const product = document.getElementById('product').value;
+    const quantity = document.getElementById('quantity').value;
+    const price = document.getElementById('price').value;
+    if (!contact || !product || !quantity || !price) return alert('Fill all fields');
+    const total = quantity * price;
+    state.quotes.push({ id: uid(), contact, product, quantity, price, total });
+    save();
+    document.getElementById('product').value = '';
+    document.getElementById('quantity').value = '';
+    document.getElementById('price').value = '';
+    render();
+  },
+  deleteQuote: function(id) {
+    state.quotes = state.quotes.filter(q => q.id !== id);
+    save();
+    render();
+  }
+};
+
+document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', function() {
+  switchTab(btn.dataset.tab);
+}));
+
+render();
+</script>
+</body>
+</html>
