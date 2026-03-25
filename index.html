@@ -1,13 +1,309 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your App</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>OilTrackPro</title>
+  <style>
+    :root {
+      --bg: #07101f;
+      --surface: #0f1a2f;
+      --surface-2: #14213d;
+      --border: #24365f;
+      --text: #eef4ff;
+      --muted: #9cb0d5;
+      --blue: #0e5ab7;
+      --blue-2: #1b75d0;
+      --green: #50d890;
+      --red: #f27d7d;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #050b16 0%, #081120 100%);
+      color: var(--text);
+    }
+    .app { padding: 16px; max-width: 100%; }
+    .card {
+      background: rgba(15,26,47,.98);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    h1, h2, h3 { margin: 0 0 12px; }
+    h1 { font-size: 24px; }
+    h2 { font-size: 18px; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; }
+    .tab, button {
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      min-height: 44px;
+      white-space: nowrap;
+      -webkit-appearance: none;
+    }
+    .tab.active { background: var(--blue); color: white; }
+    .btn-blue { background: var(--blue-2); color: white; }
+    .btn-green { background: var(--green); color: #072013; }
+    .btn-red { background: var(--red); color: #260909; }
+    input, select, textarea {
+      width: 100%;
+      background: #0b1630;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      font-size: 16px;
+      -webkit-appearance: none;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    .hidden { display: none !important; }
+    .actions { display: flex; flex-direction: column; gap: 8px; }
+    .actions button { margin-bottom: 0; }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .small { color: var(--muted); font-size: 13px; }
+    a.link {
+      color: #8dbdff;
+      word-break: break-all;
+    }
+  </style>
 </head>
 <body>
-    <h1>Welcome to Your App</h1>
-    <p>This is a sample application HTML content.</p>
-    <!-- Add more content here -->
+  <div class="app">
+    <h1>OilTrackPro</h1>
+    <div class="tabs">
+      <button class="tab active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="contacts">Contacts</button>
+      <button class="tab" data-tab="quote">Quote</button>
+      <button class="tab" data-tab="history">History</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </div>
+
+    <section id="dashboard" class="screen"></section>
+    <section id="contacts" class="screen hidden"></section>
+    <section id="quote" class="screen hidden"></section>
+    <section id="history" class="screen hidden"></section>
+    <section id="settings" class="screen hidden"></section>
+  </div>
+
+<script>
+const state = {
+  tab: 'dashboard',
+  contacts: JSON.parse(localStorage.getItem('contacts') || '[]'),
+  quotes: JSON.parse(localStorage.getItem('quotes') || '[]'),
+  settings: JSON.parse(localStorage.getItem('settings') || '{"customerOrderFormUrl":""}')
+};
+
+function save() {
+  localStorage.setItem('contacts', JSON.stringify(state.contacts));
+  localStorage.setItem('quotes', JSON.stringify(state.quotes));
+  localStorage.setItem('settings', JSON.stringify(state.settings));
+}
+
+function uid() {
+  return Math.random().toString(36).slice(2, 9);
+}
+
+function switchTab(tab) {
+  state.tab = tab;
+  document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
+  document.getElementById(tab).classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+  render();
+}
+
+function render() {
+  renderDashboard();
+  renderContacts();
+  renderQuote();
+  renderHistory();
+  renderSettings();
+}
+
+function renderDashboard() {
+  const totalQuoted = state.quotes.reduce((sum, q) => sum + Number(q.total || 0), 0);
+  const formHtml = state.settings.customerOrderFormUrl
+    ? '<a class="link" href="' + state.settings.customerOrderFormUrl + '" target="_blank">Open customer order form</a>'
+    : '<div class="small">Add your form URL in Settings.</div>';
+
+  document.getElementById('dashboard').innerHTML = `
+    <div class="card">
+      <h2>Overview</h2>
+      <div class="row"><strong>Contacts</strong><span>${state.contacts.length}</span></div>
+      <div class="row"><strong>Quotes</strong><span>${state.quotes.length}</span></div>
+      <div class="row"><strong>Total Quoted</strong><span>$${totalQuoted.toFixed(2)}</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Customer Order Form</h2>
+      ${formHtml}
+    </div>
+
+    <div class="card actions">
+      <button class="btn-blue" onclick="OilTrack.switchTab('contacts')">Add Contact</button>
+      <button class="btn-blue" onclick="OilTrack.switchTab('quote')">Create Quote</button>
+      <button class="btn-blue" onclick="OilTrack.switchTab('settings')">Open Settings</button>
+    </div>
+  `;
+}
+
+function renderContacts() {
+  let html = `
+    <div class="card">
+      <h2>Add Contact</h2>
+      <input id="name" placeholder="Name" />
+      <input id="phone" placeholder="Phone" />
+      <input id="email" placeholder="Email" />
+      <button class="btn-blue" onclick="OilTrack.addContact()">Save Contact</button>
+    </div>
+  `;
+
+  if (!state.contacts.length) {
+    html += `<div class="card"><div class="small">No contacts yet.</div></div>`;
+  }
+
+  state.contacts.forEach(c => {
+    html += `
+      <div class="card">
+        <div><strong>${c.name}</strong></div>
+        <div class="small">${c.phone || ''}</div>
+        <div class="small">${c.email || ''}</div>
+        <button class="btn-red" onclick="OilTrack.deleteContact('${c.id}')">Delete</button>
+      </div>
+    `;
+  });
+
+  document.getElementById('contacts').innerHTML = html;
+}
+
+function renderQuote() {
+  let contactOptions = `<option value="">Select Contact</option>`;
+  state.contacts.forEach(c => {
+    contactOptions += `<option value="${c.id}">${c.name}</option>`;
+  });
+
+  document.getElementById('quote').innerHTML = `
+    <div class="card">
+      <h2>Build Quote</h2>
+      <select id="contact">${contactOptions}</select>
+      <input id="product" placeholder="Product" />
+      <input id="quantity" type="number" placeholder="Quantity" />
+      <input id="price" type="number" placeholder="Price per Gallon" />
+      <button class="btn-blue" onclick="OilTrack.saveQuote()">Save Quote</button>
+    </div>
+  `;
+}
+
+function renderHistory() {
+  let html = `<div class="card"><h2>Quote History</h2>`;
+
+  if (!state.quotes.length) {
+    html += `<div class="small">No quotes saved yet.</div>`;
+  }
+
+  state.quotes.forEach(q => {
+    html += `
+      <div class="row">
+        <div>
+          <div><strong>${q.product}</strong></div>
+          <div class="small">${q.contactName || 'Unknown contact'}</div>
+          <div class="small">${q.quantity} × $${Number(q.price).toFixed(2)}</div>
+        </div>
+        <div>
+          <strong>$${Number(q.total).toFixed(2)}</strong>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  document.getElementById('history').innerHTML = html;
+}
+
+function renderSettings() {
+  document.getElementById('settings').innerHTML = `
+    <div class="card">
+      <h2>Settings</h2>
+      <div class="small">Customer Order Form URL</div>
+      <input id="formUrl" placeholder="https://fccapozzi3-dev.github.io/Sales/customer-order-form.html" value="${state.settings.customerOrderFormUrl || ''}" />
+      <button class="btn-green" onclick="OilTrack.saveSettings()">Save Settings</button>
+    </div>
+  `;
+}
+
+window.OilTrack = {
+  switchTab,
+  addContact: function() {
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    if (!name) return alert('Enter name');
+    state.contacts.push({ id: uid(), name, phone, email });
+    save();
+    render();
+  },
+  deleteContact: function(id) {
+    state.contacts = state.contacts.filter(c => c.id !== id);
+    save();
+    render();
+  },
+  saveQuote: function() {
+    const contactId = document.getElementById('contact').value;
+    const product = document.getElementById('product').value.trim();
+    const quantity = document.getElementById('quantity').value;
+    const price = document.getElementById('price').value;
+    if (!contactId || !product || !quantity || !price) return alert('Fill all fields');
+    const contact = state.contacts.find(c => c.id === contactId);
+    const total = Number(quantity) * Number(price);
+    state.quotes.push({
+      id: uid(),
+      contactId,
+      contactName: contact ? contact.name : '',
+      product,
+      quantity,
+      price,
+      total
+    });
+    save();
+    render();
+    switchTab('history');
+  },
+  saveSettings: function() {
+    const formUrl = document.getElementById('formUrl').value.trim();
+    state.settings.customerOrderFormUrl = formUrl;
+    save();
+    render();
+    alert('Settings saved');
+  }
+};
+
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', function() {
+    switchTab(btn.dataset.tab);
+  });
+});
+
+render();
+</script>
 </body>
 </html>
