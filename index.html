@@ -614,6 +614,34 @@ function buildOrderPreview(order){
   return lines.join('\n');
 }
 
+function refreshOrderLiveUi(){
+  const order = ui.orderDraft;
+  const totals = orderTotals(order);
+
+  const previewEl = document.getElementById('order_preview_text');
+  if(previewEl) previewEl.textContent = buildOrderPreview(order);
+
+  const fields = {
+    order_total_subtotal: currency(totals.subtotal),
+    order_total_delivery: currency(totals.delivery),
+    order_total_deposit: currency(totals.deposit),
+    order_total_tax: currency(totals.tax),
+    order_total_total: currency(totals.total),
+    order_total_commission_base: currency(totals.commissionBase),
+    order_total_commission: currency(totals.commission)
+  };
+
+  Object.entries(fields).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if(el) el.textContent = value;
+  });
+
+  (order.items || []).forEach(item => {
+    const el = document.getElementById('line_total_' + item.id);
+    if(el) el.value = currency(n(item.quantity) * n(item.unitPrice));
+  });
+}
+
 function renderOrders(){
   const order = ui.orderDraft;
   const totals = orderTotals(order);
@@ -638,7 +666,7 @@ function renderOrders(){
         <input type="number" step="0.01" value="${attr(item.quantity)}" placeholder="Qty" oninput="setOrderLineField('${item.id}','quantity',this.value)" />
         <input value="${attr(item.unit)}" placeholder="Unit" oninput="setOrderLineField('${item.id}','unit',this.value)" />
         <input type="number" step="0.01" value="${attr(item.unitPrice)}" placeholder="Unit Price" oninput="setOrderLineField('${item.id}','unitPrice',this.value)" />
-        <input disabled value="${currency(n(item.quantity)*n(item.unitPrice))}" />
+        <input id="line_total_${item.id}" disabled value="${currency(n(item.quantity)*n(item.unitPrice))}" />
       </div>
       <div class="row">
         <button class="btn-red" onclick="removeOrderLine('${item.id}')">Remove</button>
@@ -720,13 +748,13 @@ function renderOrders(){
         <textarea placeholder="Fulfillment notes for Phoebe" oninput="setOrderField('fulfillmentNotes',this.value)">${esc(order.fulfillmentNotes)}</textarea>
 
         <div class="totals">
-          <div class="total-row"><span>Subtotal</span><strong>${currency(totals.subtotal)}</strong></div>
-          <div class="total-row"><span>Delivery</span><strong>${currency(totals.delivery)}</strong></div>
-          <div class="total-row"><span>Drum Deposit</span><strong>${currency(totals.deposit)}</strong></div>
-          <div class="total-row"><span>Tax</span><strong>${currency(totals.tax)}</strong></div>
-          <div class="total-row big-total"><span>Total</span><strong>${currency(totals.total)}</strong></div>
-          <div class="total-row"><span>Commission Base</span><strong>${currency(totals.commissionBase)}</strong></div>
-          <div class="total-row"><span>Est. Commission</span><strong>${currency(totals.commission)}</strong></div>
+          <div class="total-row"><span>Subtotal</span><strong id="order_total_subtotal">${currency(totals.subtotal)}</strong></div>
+          <div class="total-row"><span>Delivery</span><strong id="order_total_delivery">${currency(totals.delivery)}</strong></div>
+          <div class="total-row"><span>Drum Deposit</span><strong id="order_total_deposit">${currency(totals.deposit)}</strong></div>
+          <div class="total-row"><span>Tax</span><strong id="order_total_tax">${currency(totals.tax)}</strong></div>
+          <div class="total-row big-total"><span>Total</span><strong id="order_total_total">${currency(totals.total)}</strong></div>
+          <div class="total-row"><span>Commission Base</span><strong id="order_total_commission_base">${currency(totals.commissionBase)}</strong></div>
+          <div class="total-row"><span>Est. Commission</span><strong id="order_total_commission">${currency(totals.commission)}</strong></div>
         </div>
 
         <div class="spacer"></div>
@@ -742,7 +770,7 @@ function renderOrders(){
 
       <div class="card">
         <h2>Order Preview</h2>
-        <div class="preview">${esc(buildOrderPreview(order))}</div>
+        <div class="preview" id="order_preview_text">${esc(buildOrderPreview(order))}</div>
       </div>
     </div>
 
@@ -853,7 +881,7 @@ function render(){
 }
 
 /* Accounts */
-function setAccountField(key, value){ ui.accountDraft[key] = value; renderAccounts(); }
+function setAccountField(key, value){ ui.accountDraft[key] = value; }
 function resetAccountDraft(){ ui.accountDraft = newAccountDraft(); renderAccounts(); }
 function saveAccount(){
   const draft = clone(ui.accountDraft);
@@ -903,7 +931,7 @@ function startOrderFromAccount(id){
 }
 
 /* Products */
-function setProductField(key, value){ ui.productDraft[key] = (key === 'price') ? n(value) : value; renderProducts(); }
+function setProductField(key, value){ ui.productDraft[key] = (key === 'price') ? n(value) : value; }
 function resetProductDraft(){ ui.productDraft = newProductDraft(); renderProducts(); }
 function saveProduct(){
   const p = clone(ui.productDraft);
@@ -945,7 +973,7 @@ function seedProducts(){
 /* Orders */
 function setOrderField(key, value){
   ui.orderDraft[key] = ['deliveryCharge','drumDeposit','taxRate','totalForCommission'].includes(key) ? n(value) : value;
-  renderOrders();
+  refreshOrderLiveUi();
 }
 function loadAccountIntoOrder(id){
   const a = getAccount(id);
@@ -972,7 +1000,7 @@ function setOrderLineField(id, key, value){
   const line = ui.orderDraft.items.find(x => x.id === id);
   if(!line) return;
   line[key] = ['quantity','unitPrice'].includes(key) ? n(value) : value;
-  renderOrders();
+  refreshOrderLiveUi();
 }
 function setOrderLineProduct(id, productId){
   const line = ui.orderDraft.items.find(x => x.id === id);
