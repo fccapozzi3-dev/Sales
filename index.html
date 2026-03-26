@@ -20,7 +20,14 @@
       --gold:#e7bd53;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;padding:0;min-height:100%;background:linear-gradient(180deg,var(--bg) 0%, var(--bg2) 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    html,body{
+      margin:0;
+      padding:0;
+      min-height:100%;
+      background:linear-gradient(180deg,var(--bg) 0%, var(--bg2) 100%);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+    }
     .app{max-width:1200px;margin:0 auto;padding:16px}
     h1,h2,h3{margin:0 0 12px}
     h1{font-size:30px}
@@ -89,16 +96,9 @@
       margin-right:6px;
       margin-bottom:6px;
     }
-    .list-item{
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:12px;
-      background:#0c1730;
-    }
     .spacer{height:8px}
     .divider{height:1px;background:var(--border);margin:12px 0}
     .right{margin-left:auto}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
     .danger-text{color:#ffaaaa}
     .success-text{color:#8ff0b2}
     .link{color:#8dbcff;word-break:break-all}
@@ -159,7 +159,36 @@
 </div>
 
 <script>
-const STORAGE_KEY = 'oiltrackpro_settings_first_v2';
+const STORAGE_KEY = 'oiltrackpro_settings_first_v3';
+
+function uid(){
+  return Math.random().toString(36).slice(2,9);
+}
+function today(){
+  return new Date().toISOString().slice(0,10);
+}
+function numberOrZero(v){
+  return Number(v || 0);
+}
+function currency(n){
+  return '$' + Number(n || 0).toFixed(2);
+}
+function structuredCloneSafe(obj){
+  return JSON.parse(JSON.stringify(obj));
+}
+function escapeHtml(v){
+  return String(v ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;');
+}
+function escapeAttr(v){
+  return String(v ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('"','&quot;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;');
+}
 
 const defaults = {
   products: [],
@@ -191,48 +220,64 @@ const defaults = {
   }
 };
 
-let state = loadState();
-let ui = {
-  tab: 'dashboard',
-  invoiceDraft: newInvoiceDraft()
-};
-
-function uid(){
-  return Math.random().toString(36).slice(2,9);
-}
-
 function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return structuredClone(defaults);
+    if(!raw) return structuredCloneSafe(defaults);
     const parsed = JSON.parse(raw);
     return {
-      products: Array.isArray(parsed.products) ? parsed.products : structuredClone(defaults.products),
-      customerFields: Array.isArray(parsed.customerFields) ? parsed.customerFields : structuredClone(defaults.customerFields),
-      customers: Array.isArray(parsed.customers) ? parsed.customers : structuredClone(defaults.customers),
-      invoices: Array.isArray(parsed.invoices) ? parsed.invoices : structuredClone(defaults.invoices),
-      settings: {...structuredClone(defaults.settings), ...(parsed.settings || {})}
+      products: Array.isArray(parsed.products) ? parsed.products : structuredCloneSafe(defaults.products),
+      customerFields: Array.isArray(parsed.customerFields) ? parsed.customerFields : structuredCloneSafe(defaults.customerFields),
+      customers: Array.isArray(parsed.customers) ? parsed.customers : structuredCloneSafe(defaults.customers),
+      invoices: Array.isArray(parsed.invoices) ? parsed.invoices : structuredCloneSafe(defaults.invoices),
+      settings: {...structuredCloneSafe(defaults.settings), ...(parsed.settings || {})}
     };
   }catch(e){
-    return structuredClone(defaults);
+    return structuredCloneSafe(defaults);
   }
 }
+
+let state = loadState();
+let ui = {
+  tab: 'dashboard',
+  invoiceDraft: null
+};
 
 function saveState(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-function structuredClone(obj){
-  return JSON.parse(JSON.stringify(obj));
+function newLineItem(){
+  return {
+    id: uid(),
+    productId: '',
+    description: '',
+    quantity: 1,
+    unit: '',
+    unitPrice: 0
+  };
 }
 
-function currency(n){
-  return '$' + Number(n || 0).toFixed(2);
+function newInvoiceDraft(){
+  return {
+    customerId: '',
+    customerName: '',
+    contactName: '',
+    email: '',
+    phone: '',
+    address: '',
+    date: today(),
+    dueDate: '',
+    deliveryCharge: numberOrZero(state.settings.defaultDeliveryCharge),
+    taxRate: numberOrZero(state.settings.defaultTaxRate),
+    drumDeposit: numberOrZero(state.settings.defaultDrumDeposit),
+    notes: state.settings.invoiceMessage || '',
+    disclaimer: state.settings.defaultDisclaimer || '',
+    items: [newLineItem()]
+  };
 }
 
-function numberOrZero(v){
-  return Number(v || 0);
-}
+ui.invoiceDraft = newInvoiceDraft();
 
 function switchTab(tab){
   ui.tab = tab;
@@ -242,14 +287,14 @@ function switchTab(tab){
   render();
 }
 
-function render(){
-  renderDashboard();
-  renderProducts();
-  renderFields();
-  renderCustomers();
-  renderInvoices();
-  renderSettings();
-  renderData();
+function invoiceTotals(inv){
+  const subtotal = inv.items.reduce((sum, item) => sum + (numberOrZero(item.quantity) * numberOrZero(item.unitPrice)), 0);
+  const delivery = numberOrZero(inv.deliveryCharge);
+  const deposit = numberOrZero(inv.drumDeposit);
+  const preTax = subtotal + delivery + deposit;
+  const tax = preTax * (numberOrZero(inv.taxRate) / 100);
+  const total = preTax + tax;
+  return {subtotal, delivery, deposit, preTax, tax, total};
 }
 
 function metricCard(title, value, note=''){
@@ -290,6 +335,7 @@ function renderDashboard(){
         <span class="pill">Tax</span>
         <span class="pill">Drum deposit</span>
         <span class="pill">Company info</span>
+        <span class="pill">PDF invoices</span>
       </div>
       <div class="spacer"></div>
       <div class="row">
@@ -303,7 +349,7 @@ function renderDashboard(){
       <h2>Customer order form URL</h2>
       <a class="link" href="${escapeHtml(state.settings.customerOrderFormUrl || '')}" target="_blank">${escapeHtml(state.settings.customerOrderFormUrl || 'Not set')}</a>
       <div class="spacer"></div>
-      <div class="tiny">Note: this app is settings-driven on this browser. Public customer forms on other devices will not automatically inherit local browser settings without a backend.</div>
+      <div class="tiny">This app is editable from Settings on this browser. For true shared sync across devices, you’ll eventually want a backend/database.</div>
     </div>
 
     <div class="card">
@@ -320,7 +366,7 @@ function renderDashboard(){
 
 function renderProducts(){
   let rows = '';
-  state.products.forEach((p, i) => {
+  state.products.forEach((p) => {
     rows += `
       <tr>
         <td>${escapeHtml(p.name || '')}</td>
@@ -456,7 +502,7 @@ function renderFields(){
         <h2>Customer form preview</h2>
         <div>${preview || `<div class="muted">No enabled fields.</div>`}</div>
         <div class="spacer"></div>
-        <div class="tiny">This controls what info you want to collect in your workflow. A true public dynamic customer form for everyone will eventually need a backend or form service.</div>
+        <div class="tiny">This controls what info you want to collect in your workflow. A truly public dynamic customer form for everyone will need a backend or form service.</div>
       </div>
     </div>
 
@@ -549,46 +595,6 @@ function renderCustomers(){
   `;
 }
 
-function newInvoiceDraft(){
-  return {
-    customerId: '',
-    customerName: '',
-    contactName: '',
-    email: '',
-    phone: '',
-    address: '',
-    date: today(),
-    dueDate: '',
-    deliveryCharge: numberOrZero(state.settings.defaultDeliveryCharge),
-    taxRate: numberOrZero(state.settings.defaultTaxRate),
-    drumDeposit: numberOrZero(state.settings.defaultDrumDeposit),
-    notes: state.settings.invoiceMessage || '',
-    disclaimer: state.settings.defaultDisclaimer || '',
-    items: [newLineItem()]
-  };
-}
-
-function newLineItem(){
-  return {
-    id: uid(),
-    productId: '',
-    description: '',
-    quantity: 1,
-    unit: '',
-    unitPrice: 0
-  };
-}
-
-function invoiceTotals(inv){
-  const subtotal = inv.items.reduce((sum, item) => sum + (numberOrZero(item.quantity) * numberOrZero(item.unitPrice)), 0);
-  const delivery = numberOrZero(inv.deliveryCharge);
-  const deposit = numberOrZero(inv.drumDeposit);
-  const preTax = subtotal + delivery + deposit;
-  const tax = preTax * (numberOrZero(inv.taxRate) / 100);
-  const total = preTax + tax;
-  return {subtotal, delivery, deposit, preTax, tax, total};
-}
-
 function renderInvoices(){
   const inv = ui.invoiceDraft;
   const totals = invoiceTotals(inv);
@@ -598,19 +604,19 @@ function renderInvoices(){
     customerOptions += `<option value="${c.id}" ${inv.customerId === c.id ? 'selected' : ''}>${escapeHtml(c.shopName || '')}</option>`;
   });
 
-  const productOptions = () => {
+  function productOptions(selectedId=''){
     let html = `<option value="">Select product</option>`;
     state.products.filter(p => p.active !== false).forEach(p => {
-      html += `<option value="${p.id}">${escapeHtml(p.name)} — ${currency(p.price)} / ${escapeHtml(p.unit || '')}</option>`;
+      html += `<option value="${p.id}" ${selectedId === p.id ? 'selected' : ''}>${escapeHtml(p.name)} — ${currency(p.price)} / ${escapeHtml(p.unit || '')}</option>`;
     });
     return html;
-  };
+  }
 
-  const lineItemsHtml = inv.items.map((item, idx) => `
+  const lineItemsHtml = inv.items.map((item) => `
     <div class="line-item">
       <div class="grid grid-2">
         <select onchange="setLineProduct('${item.id}', this.value)">
-          ${productOptions()}
+          ${productOptions(item.productId)}
         </select>
         <input value="${escapeAttr(item.description || '')}" placeholder="Description" oninput="setLineField('${item.id}', 'description', this.value)" />
       </div>
@@ -638,6 +644,7 @@ function renderInvoices(){
         <td>${currency(saved.total)}</td>
         <td>
           <button onclick="loadSavedInvoice('${saved.id}')">Load</button>
+          <button onclick="downloadSavedInvoicePdf('${saved.id}')">PDF</button>
           <button onclick="copySavedInvoice('${saved.id}')">Copy Text</button>
           <button onclick="emailSavedInvoice('${saved.id}')">Email</button>
           <button class="btn-red" onclick="deleteInvoice('${saved.id}')">Delete</button>
@@ -694,6 +701,7 @@ function renderInvoices(){
         <div class="spacer"></div>
         <div class="row">
           <button class="btn-green" onclick="saveInvoice()">Save Invoice</button>
+          <button class="btn-blue" onclick="downloadDraftInvoicePdf()">Download PDF</button>
           <button class="btn-blue" onclick="copyDraftInvoice()">Copy Invoice Text</button>
           <button class="btn-gold" onclick="emailDraftInvoice()">Email Invoice</button>
           <button onclick="resetInvoiceDraft()">New Invoice</button>
@@ -803,25 +811,6 @@ function renderData(){
       </div>
     </div>
   `;
-}
-
-function escapeHtml(v){
-  return String(v ?? '')
-    .replaceAll('&','&amp;')
-    .replaceAll('<','&lt;')
-    .replaceAll('>','&gt;');
-}
-
-function escapeAttr(v){
-  return String(v ?? '')
-    .replaceAll('&','&amp;')
-    .replaceAll('"','&quot;')
-    .replaceAll('<','&lt;')
-    .replaceAll('>','&gt;');
-}
-
-function today(){
-  return new Date().toISOString().slice(0,10);
 }
 
 /* PRODUCTS */
@@ -1114,7 +1103,7 @@ function saveInvoice(){
     email: inv.email || '',
     phone: inv.phone || '',
     address: inv.address || '',
-    items: structuredClone(inv.items),
+    items: structuredCloneSafe(inv.items),
     deliveryCharge: numberOrZero(inv.deliveryCharge),
     taxRate: numberOrZero(inv.taxRate),
     drumDeposit: numberOrZero(inv.drumDeposit),
@@ -1150,7 +1139,7 @@ function loadSavedInvoice(id){
     drumDeposit: numberOrZero(inv.drumDeposit),
     notes: inv.notes || '',
     disclaimer: inv.disclaimer || '',
-    items: structuredClone(inv.items || [newLineItem()])
+    items: structuredCloneSafe(inv.items || [newLineItem()])
   };
   switchTab('invoices');
 }
@@ -1165,13 +1154,6 @@ function deleteInvoice(id){
 function copyDraftInvoice(){
   const totals = invoiceTotals(ui.invoiceDraft);
   const text = buildInvoiceTextPreview(ui.invoiceDraft, totals);
-  navigator.clipboard.writeText(text).then(() => alert('Invoice text copied.'));
-}
-
-function copySavedInvoice(id){
-  const inv = state.invoices.find(x => x.id === id);
-  if(!inv) return;
-  const text = buildSavedInvoiceText(inv);
   navigator.clipboard.writeText(text).then(() => alert('Invoice text copied.'));
 }
 
@@ -1211,6 +1193,13 @@ function buildSavedInvoiceText(inv){
   return lines.join('\n');
 }
 
+function copySavedInvoice(id){
+  const inv = state.invoices.find(x => x.id === id);
+  if(!inv) return;
+  const text = buildSavedInvoiceText(inv);
+  navigator.clipboard.writeText(text).then(() => alert('Invoice text copied.'));
+}
+
 function emailDraftInvoice(){
   const totals = invoiceTotals(ui.invoiceDraft);
   const invoiceNumber = (state.settings.invoicePrefix || '') + state.settings.nextInvoiceNumber;
@@ -1233,6 +1222,221 @@ function resetInvoiceDraft(){
   if(!confirm('Start a fresh invoice draft?')) return;
   ui.invoiceDraft = newInvoiceDraft();
   render();
+}
+
+/* PDF */
+function buildInvoiceHtmlForPdf(inv, totals, invoiceNumber){
+  const companyName = state.settings.companyName || '';
+  const companyPhone = state.settings.companyPhone || '';
+  const companyEmail = state.settings.companyEmail || '';
+  const companyAddress = state.settings.companyAddress || '';
+  const paymentTerms = state.settings.paymentTerms || '';
+  const logoUrl = state.settings.logoUrl || '';
+
+  const itemRows = (inv.items || []).map(item => {
+    const qty = numberOrZero(item.quantity);
+    const unitPrice = numberOrZero(item.unitPrice);
+    const lineTotal = qty * unitPrice;
+    return `
+      <tr>
+        <td>${escapeHtml(item.description || '')}</td>
+        <td>${escapeHtml(item.unit || '')}</td>
+        <td style="text-align:right;">${qty}</td>
+        <td style="text-align:right;">${currency(unitPrice)}</td>
+        <td style="text-align:right;">${currency(lineTotal)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <title>${escapeHtml(invoiceNumber)}</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          color: #111;
+          margin: 0;
+          padding: 32px;
+          background: #fff;
+        }
+        .wrap {
+          max-width: 900px;
+          margin: 0 auto;
+        }
+        .top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 24px;
+          margin-bottom: 28px;
+        }
+        .logo {
+          max-width: 180px;
+          max-height: 90px;
+          margin-bottom: 10px;
+        }
+        h1 {
+          margin: 0 0 8px;
+          font-size: 30px;
+        }
+        h2 {
+          margin: 0 0 10px;
+          font-size: 18px;
+        }
+        .muted {
+          color: #555;
+          line-height: 1.5;
+          white-space: pre-wrap;
+        }
+        .meta {
+          text-align: right;
+        }
+        .box {
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          padding: 14px;
+          margin-bottom: 20px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 10px;
+        }
+        th, td {
+          border-bottom: 1px solid #ddd;
+          padding: 10px 8px;
+          vertical-align: top;
+        }
+        th {
+          background: #f5f5f5;
+          text-align: left;
+        }
+        .totals {
+          margin-top: 24px;
+          margin-left: auto;
+          width: 340px;
+        }
+        .totals-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px 0;
+          border-bottom: 1px solid #ddd;
+        }
+        .grand {
+          font-size: 22px;
+          font-weight: 700;
+        }
+        .notes, .disclaimer {
+          margin-top: 24px;
+          white-space: pre-wrap;
+          line-height: 1.5;
+        }
+        .disclaimer {
+          font-size: 12px;
+          color: #666;
+        }
+        @media print {
+          body { padding: 0; }
+          .wrap { max-width: 100%; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="wrap">
+        <div class="top">
+          <div>
+            ${logoUrl ? `<img src="${escapeAttr(logoUrl)}" class="logo" />` : ''}
+            <h1>${escapeHtml(companyName)}</h1>
+            <div class="muted">${escapeHtml(companyPhone)}</div>
+            <div class="muted">${escapeHtml(companyEmail)}</div>
+            <div class="muted">${escapeHtml(companyAddress)}</div>
+          </div>
+          <div class="meta">
+            <h1>INVOICE</h1>
+            <div><strong>${escapeHtml(invoiceNumber)}</strong></div>
+            <div class="muted">Date: ${escapeHtml(inv.date || '')}</div>
+            ${inv.dueDate ? `<div class="muted">Due: ${escapeHtml(inv.dueDate)}</div>` : ''}
+          </div>
+        </div>
+
+        <div class="box">
+          <h2>Bill To</h2>
+          <div>${escapeHtml(inv.customerName || '')}</div>
+          ${inv.contactName ? `<div>${escapeHtml(inv.contactName)}</div>` : ''}
+          ${inv.phone ? `<div>${escapeHtml(inv.phone)}</div>` : ''}
+          ${inv.email ? `<div>${escapeHtml(inv.email)}</div>` : ''}
+          ${inv.address ? `<div>${escapeHtml(inv.address)}</div>` : ''}
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Unit</th>
+              <th style="text-align:right;">Qty</th>
+              <th style="text-align:right;">Unit Price</th>
+              <th style="text-align:right;">Line Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemRows}
+          </tbody>
+        </table>
+
+        <div class="totals">
+          <div class="totals-row"><span>Subtotal</span><strong>${currency(totals.subtotal)}</strong></div>
+          <div class="totals-row"><span>Delivery</span><strong>${currency(totals.delivery)}</strong></div>
+          <div class="totals-row"><span>Drum Deposit</span><strong>${currency(totals.deposit)}</strong></div>
+          <div class="totals-row"><span>Tax</span><strong>${currency(totals.tax)}</strong></div>
+          <div class="totals-row grand"><span>Total</span><strong>${currency(totals.total)}</strong></div>
+        </div>
+
+        ${paymentTerms ? `<div class="notes"><strong>Payment Terms:</strong> ${escapeHtml(paymentTerms)}</div>` : ''}
+        ${inv.notes ? `<div class="notes"><strong>Message:</strong>\n${escapeHtml(inv.notes)}</div>` : ''}
+        ${inv.disclaimer ? `<div class="disclaimer">${escapeHtml(inv.disclaimer)}</div>` : ''}
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+function openInvoicePdfWindow(html){
+  const win = window.open('', '_blank');
+  if(!win){
+    alert('Pop-up blocked. Please allow pop-ups for this site.');
+    return;
+  }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => {
+    win.focus();
+    win.print();
+  }, 500);
+}
+
+function downloadDraftInvoicePdf(){
+  const totals = invoiceTotals(ui.invoiceDraft);
+  const invoiceNumber = (state.settings.invoicePrefix || '') + state.settings.nextInvoiceNumber;
+  const html = buildInvoiceHtmlForPdf(ui.invoiceDraft, totals, invoiceNumber);
+  openInvoicePdfWindow(html);
+}
+
+function downloadSavedInvoicePdf(id){
+  const inv = state.invoices.find(x => x.id === id);
+  if(!inv) return;
+  const totals = {
+    subtotal: numberOrZero(inv.subtotal),
+    delivery: numberOrZero(inv.deliveryCharge),
+    deposit: numberOrZero(inv.drumDeposit),
+    tax: numberOrZero(inv.tax),
+    total: numberOrZero(inv.total)
+  };
+  const html = buildInvoiceHtmlForPdf(inv, totals, inv.invoiceNumber);
+  openInvoicePdfWindow(html);
 }
 
 /* SETTINGS */
@@ -1259,7 +1463,7 @@ function saveSettings(){
 
 function resetSettingsOnly(){
   if(!confirm('Reset settings only? Products, customers, and invoices will stay.')) return;
-  state.settings = structuredClone(defaults.settings);
+  state.settings = structuredCloneSafe(defaults.settings);
   saveState();
   render();
 }
@@ -1276,10 +1480,10 @@ function importData(){
     const parsed = JSON.parse(raw);
     state = {
       products: Array.isArray(parsed.products) ? parsed.products : [],
-      customerFields: Array.isArray(parsed.customerFields) ? parsed.customerFields : structuredClone(defaults.customerFields),
+      customerFields: Array.isArray(parsed.customerFields) ? parsed.customerFields : structuredCloneSafe(defaults.customerFields),
       customers: Array.isArray(parsed.customers) ? parsed.customers : [],
       invoices: Array.isArray(parsed.invoices) ? parsed.invoices : [],
-      settings: {...structuredClone(defaults.settings), ...(parsed.settings || {})}
+      settings: {...structuredCloneSafe(defaults.settings), ...(parsed.settings || {})}
     };
     saveState();
     ui.invoiceDraft = newInvoiceDraft();
@@ -1292,7 +1496,7 @@ function importData(){
 
 function wipeEverything(){
   if(!confirm('This will erase all products, customers, invoices, fields, and settings on this browser. Continue?')) return;
-  state = structuredClone(defaults);
+  state = structuredCloneSafe(defaults);
   ui.invoiceDraft = newInvoiceDraft();
   saveState();
   render();
