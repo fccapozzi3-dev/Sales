@@ -1,1177 +1,571 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Frank's Command Center — Encore Petroleum</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frank's Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#0a0d12; --surface:#111520; --surface2:#181d2a; --card:#13192a;
-  --border:#1e2840; --border2:#26334f;
-  --gold:#e8c84a; --gold2:#f5d96a; --gold-dim:rgba(232,200,74,.12);
-  --green:#3fb87a; --red:#f07b7b; --orange:#ff9a3c; --blue:#4ab8ff;
-  --text:#e8edf8; --muted:#5a6880; --muted2:#8899b0;
-  --mono:'DM Mono',monospace; --sans:'DM Sans',sans-serif; --display:'Bebas Neue',sans-serif;
+:root {
+  --bg: #0d0f12;
+  --surface: #141720;
+  --surface2: #1c2030;
+  --border: #252a3a;
+  --accent: #e8c84a;
+  --accent2: #4af0a0;
+  --red: #ff4d4d;
+  --orange: #ff9a3c;
+  --blue: #4ab8ff;
+  --text: #e8eaf0;
+  --muted: #5a6080;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --display: 'Bebas Neue', sans-serif;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
-.app{display:flex;flex-direction:column;min-height:100vh}
-.topbar{background:var(--surface);border-bottom:2px solid var(--gold);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
-.logo{font-family:var(--display);font-size:26px;letter-spacing:2px;color:var(--gold)}
-.logo span{color:var(--muted);font-size:16px;letter-spacing:1px}
-.topbar-right{display:flex;align-items:center;gap:20px}
-.date-disp{font-family:var(--mono);font-size:11px;color:var(--muted)}
-.comm-badge{background:var(--gold-dim);border:1px solid rgba(232,200,74,.3);color:var(--gold2);font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:4px}
-.tabs{background:var(--surface);border-bottom:1px solid var(--border2);display:flex;gap:4px;padding:0 20px;overflow-x:auto;}
-.tab{border:none;background:transparent;color:var(--muted2);font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:13px 16px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;}
-.tab:hover{color:var(--text)}
-.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
-.screen{display:none;padding:24px;flex:1}
-.screen.active{display:block}
-.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px}
-.card-title{font-family:var(--display);font-size:18px;letter-spacing:1.5px;color:var(--gold2);margin-bottom:14px}
-.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
-.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
-.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-input,select,textarea{width:100%;background:#0d1424;color:var(--text);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:14px;font-family:var(--sans);}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold)}
-textarea{min-height:80px;resize:vertical}
-.field-label{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:3px}
-button,.btn{border:1px solid var(--border2);background:var(--surface2);color:var(--text);border-radius:8px;padding:10px 16px;font-size:13px;font-family:var(--sans);font-weight:500;cursor:pointer;white-space:nowrap;transition:all .15s;}
-button:hover,.btn:hover{border-color:var(--gold);color:var(--gold)}
-.btn-gold{background:var(--gold);color:#0a0d12;border-color:var(--gold);font-weight:700}
-.btn-gold:hover{background:var(--gold2);color:#0a0d12}
-.btn-green{background:rgba(63,184,122,.15);border-color:var(--green);color:var(--green)}
-.btn-green:hover{background:rgba(63,184,122,.25)}
-.btn-blue{background:rgba(74,184,255,.12);border-color:var(--blue);color:var(--blue)}
-.btn-blue:hover{background:rgba(74,184,255,.22)}
-.btn-red{background:rgba(240,123,123,.1);border-color:var(--red);color:var(--red)}
-.btn-red:hover{background:rgba(240,123,123,.2)}
-.btn-sm{padding:5px 10px;font-size:11px}
-.tbl-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;padding:9px 10px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);border-bottom:1px solid var(--border2);text-transform:uppercase;white-space:nowrap}
-td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top}
-tr:hover td{background:rgba(255,255,255,.02)}
-.tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;border:1px solid}
-.tag-lead{background:rgba(255,154,60,.1);color:var(--orange);border-color:rgba(255,154,60,.3)}
-.tag-follow_up,.tag-followup{background:rgba(74,184,255,.1);color:var(--blue);border-color:rgba(74,184,255,.3)}
-.tag-ordered,.tag-customer{background:rgba(63,184,122,.1);color:var(--green);border-color:rgba(63,184,122,.3)}
-.tag-delivered{background:rgba(232,200,74,.1);color:var(--gold);border-color:rgba(232,200,74,.3)}
-.tag-lost{background:rgba(240,123,123,.1);color:var(--red);border-color:rgba(240,123,123,.3)}
-.pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;border:1px solid var(--border2);color:var(--muted2);margin:3px}
-.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
-.metric-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
-.metric-label{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px}
-.metric-val{font-family:var(--mono);font-size:24px;color:var(--gold)}
-.metric-val.green{color:var(--green)}
-.metric-val.red{color:var(--red)}
-.metric-val.blue{color:var(--blue)}
-.metric-sub{font-size:11px;color:var(--muted);margin-top:3px}
-.goal-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
-.goal-track{background:var(--surface2);border-radius:4px;height:10px;margin:8px 0;overflow:hidden}
-.goal-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--green),var(--gold));transition:width .5s}
-.goal-nums{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px}
-.goal-earned{color:var(--green)}
-.goal-target{color:var(--muted)}
-.goal-gap{color:var(--red);font-size:11px;margin-top:4px}
-.group-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.15em;padding:5px 12px;border-radius:4px;display:inline-block;margin-bottom:8px;margin-top:4px;}
-.gl-fire{background:rgba(240,123,123,.15);color:var(--red)}
-.gl-soon{background:rgba(255,154,60,.15);color:var(--orange)}
-.gl-pipeline{background:rgba(63,184,122,.1);color:var(--green)}
-.gl-cold{background:rgba(90,100,130,.15);color:var(--muted2)}
-.task{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:7px;display:flex;align-items:flex-start;gap:10px;transition:border-color .15s,transform .1s;}
-.task:hover{border-color:var(--gold);transform:translateX(2px)}
-.task.done{opacity:.35}
-.task.done .task-name{text-decoration:line-through}
-.t-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
-.t-fire{background:var(--red);box-shadow:0 0 6px var(--red)}
-.t-soon{background:var(--orange);box-shadow:0 0 6px var(--orange)}
-.t-pipeline{background:var(--green)}
-.t-cold{background:var(--muted)}
-.task-body{flex:1;min-width:0}
-.task-name{font-weight:500;font-size:14px;margin-bottom:2px}
-.task-action{font-size:12px;color:var(--muted2)}
-.task-ts{font-size:10px;color:var(--muted);margin-top:3px;font-family:var(--mono)}
-.task-phone{font-family:var(--mono);font-size:11px;color:var(--blue)}
-.task-tag{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:3px;border:1px solid var(--border2);color:var(--muted);margin-left:6px}
-.task-ctrls{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
-.view-tabs{display:flex;gap:6px;margin-bottom:14px}
-.divider{height:1px;background:var(--border2);margin:12px 0}
-.spacer{height:10px}
-.muted{color:var(--muted2)}
-.tiny{font-size:11px;color:var(--muted)}
-.right{margin-left:auto}
-.line-item{background:#0c1322;border:1px solid var(--border2);border-radius:8px;padding:12px;margin-bottom:10px}
-.totals-block{display:grid;gap:6px;max-width:420px;margin-left:auto;margin-top:14px}
-.total-row{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid var(--border);padding:7px 0;font-size:13px}
-.total-row.grand{font-family:var(--mono);font-size:20px;font-weight:700;border-bottom:none}
-.total-row.grand span{color:var(--gold2)}
-.total-row.comm{color:var(--green)}
-.preview{white-space:pre-wrap;background:#080d18;border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;font-family:var(--mono);color:var(--muted2);max-height:480px;overflow-y:auto}
-.calc-row{display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 16px}
-.calc-input{width:140px;margin:0}
-.calc-result{font-family:var(--mono);font-size:18px;color:var(--gold);white-space:nowrap}
-.backup-area{background:#080d18;border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;font-family:var(--mono);color:var(--muted2);min-height:160px;width:100%;resize:vertical}
-.goal-item{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
-.goal-item:last-child{border-bottom:none}
-.goal-cb{width:18px;height:18px;border-radius:4px;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.goal-cb.checked{background:var(--green);border-color:var(--green)}
-.auto-task-item{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:8px;margin-bottom:6px;background:var(--surface2)}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
+
+.app { display: grid; grid-template-columns: 290px 1fr; grid-template-rows: auto 1fr; min-height: 100vh; }
+
+/* HEADER */
+header {
+  grid-column: 1/-1;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.logo { font-family: var(--display); font-size: 26px; letter-spacing: 2px; color: var(--accent); }
+.logo span { color: var(--muted); }
+.header-stats { display: flex; gap: 20px; align-items: center; }
+.hstat { text-align: right; }
+.hstat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+.hstat-value { font-family: var(--mono); font-size: 15px; color: var(--text); }
+.hstat-value.green { color: var(--accent2); }
+.hstat-value.red { color: var(--red); cursor: pointer; }
+.hstat-value.red:hover { opacity: .8; }
+
+/* SIDEBAR */
+aside {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 16px;
+  overflow-y: auto;
+}
+.sidebar-section { }
+.sidebar-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; }
+
+/* Goal bar */
+.goal-bar-bg { background: var(--surface2); border-radius: 4px; height: 6px; margin: 6px 0; overflow: hidden; }
+.goal-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 4px; transition: width .4s; }
+.goal-sub { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+
+/* Commission calc */
+.calc-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.calc-input { flex: 1; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 6px; font-family: var(--mono); font-size: 13px; }
+.calc-input:focus { outline: none; border-color: var(--accent); }
+.calc-result { font-family: var(--mono); font-size: 13px; color: var(--accent2); white-space: nowrap; }
+
+/* Stats grid */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat-box { background: var(--surface2); border-radius: 8px; padding: 10px 12px; text-align: center; }
+.stat-num { font-size: 22px; font-weight: 500; color: var(--text); font-family: var(--mono); }
+.stat-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.stat-num.fire { color: var(--red); }
+.stat-num.soon { color: var(--orange); }
+.stat-num.done { color: var(--accent2); }
+
+/* Add task form */
+.add-form { display: flex; flex-direction: column; gap: 6px; }
+.add-input { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 7px 10px; border-radius: 6px; font-family: var(--sans); font-size: 13px; }
+.add-input:focus { outline: none; border-color: var(--accent); }
+.add-row { display: flex; gap: 6px; }
+.add-select { flex: 1; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 6px 8px; border-radius: 6px; font-size: 12px; }
+.add-select:focus { outline: none; border-color: var(--accent); }
+.add-btn { background: var(--accent); color: #000; border: none; padding: 7px 14px; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.add-btn:hover { opacity: .9; }
+
+/* Filters */
+.filters { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.filter-btn { padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; font-size: 11px; cursor: pointer; color: var(--muted); font-family: var(--sans); transition: all .15s; }
+.filter-btn.active { background: var(--surface2); color: var(--text); border-color: var(--accent); }
+.search-input { margin-left: auto; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 4px 12px; border-radius: 20px; font-size: 11px; font-family: var(--sans); min-width: 160px; }
+.search-input:focus { outline: none; border-color: var(--accent); }
+
+/* MAIN */
+.main { overflow-y: auto; display: flex; flex-direction: column; }
+.main-inner { flex: 1; padding: 16px; }
+
+.tasks-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.tasks-title { font-family: var(--display); font-size: 22px; letter-spacing: 2px; color: var(--accent); }
+.tasks-count { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+/* Task groups */
+.task-group { margin-bottom: 14px; }
+.group-label { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; display: block; padding: 4px 0 8px; }
+.group-label.fire { color: var(--red); }
+.group-label.soon { color: var(--orange); }
+.group-label.pipeline { color: var(--blue); }
+.group-label.cold { color: var(--muted); }
+
+/* Task card */
+.task { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; transition: border-color .15s; }
+.task:hover { border-color: #353a50; }
+.task.done { opacity: .4; }
+.task-priority { width: 4px; min-width: 4px; height: 36px; border-radius: 2px; margin-top: 2px; }
+.p-fire { background: var(--red); }
+.p-soon { background: var(--orange); }
+.p-pipeline { background: var(--blue); }
+.p-cold { background: var(--muted); }
+.task-body { flex: 1; min-width: 0; }
+.task-name { font-size: 13px; font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.task-action { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+.task-phone { font-family: var(--mono); font-size: 11px; color: var(--blue); margin-top: 4px; display: inline-block; }
+.task-addr { font-size: 11px; color: #3a4060; margin-top: 2px; }
+.tag-pill { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500; }
+.tag-call { background: rgba(74,184,255,.15); color: var(--blue); }
+.tag-visit { background: rgba(255,154,60,.15); color: var(--orange); }
+.tag-email { background: rgba(232,200,74,.15); color: var(--accent); }
+.tag-followup { background: rgba(74,240,160,.15); color: var(--accent2); }
+.task-controls { display: flex; flex-direction: column; gap: 4px; }
+.tc-btn { border: none; padding: 4px 8px; border-radius: 5px; font-size: 10px; cursor: pointer; font-weight: 500; font-family: var(--sans); white-space: nowrap; }
+.done-btn { background: rgba(74,240,160,.15); color: var(--accent2); }
+.done-btn:hover { background: rgba(74,240,160,.25); }
+.undo-btn { background: var(--surface2); color: var(--muted); }
+.del-btn { background: rgba(255,77,77,.1); color: var(--red); }
+.del-btn:hover { background: rgba(255,77,77,.2); }
+
+.promote-btn { background: rgba(232,200,74,.12); color: var(--accent); }
+.promote-btn:hover { background: rgba(232,200,74,.22); }
+
+.empty { text-align: center; color: var(--muted); font-size: 13px; padding: 40px; }
 </style>
 </head>
 <body>
 <div class="app">
 
-<div class="topbar">
-  <div>
-    <div class="logo">Encore Petroleum <span>&middot; Command Center</span></div>
+<header>
+  <div class="logo">FRANK<span>'S</span> COMMAND CENTER</div>
+  <div style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="dateDisplay"></div>
+  <div class="header-stats">
+    <div class="hstat">
+      <div class="hstat-label">Open Tasks</div>
+      <div class="hstat-value green" id="hOpenCount">—</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-label">🔥 On Fire</div>
+      <div class="hstat-value" style="color:var(--red)" id="hFireCount">—</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-label">Week Goal</div>
+      <div class="hstat-value red" id="hWeekGap" title="Click to update">$3,500</div>
+    </div>
   </div>
-  <div class="topbar-right">
-    <div class="comm-badge">7% COMMISSION</div>
-    <div class="date-disp" id="dateDisp"></div>
+</header>
+
+<aside>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Weekly Commission Goal</div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <span style="font-family:var(--mono);font-size:18px;color:var(--accent2)" id="weekEarned">$0</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">/ $3,500</span>
+    </div>
+    <div class="goal-bar-bg"><div class="goal-bar-fill" id="goalFill" style="width:0%"></div></div>
+    <div class="goal-sub"><span id="goalGap">$3,500 to go</span><span id="goalPct">0%</span></div>
+    <button onclick="updateWeekEarnings()" style="margin-top:8px;width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:6px;border-radius:6px;font-size:11px;cursor:pointer;">Update Earnings</button>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Commission Calc (7%)</div>
+    <div class="calc-row">
+      <span style="font-size:12px;color:var(--muted)">Sale $</span>
+      <input type="number" id="calcInput" class="calc-input" placeholder="0" oninput="calcComm()">
+      <span class="calc-result" id="calcResult">= $0</span>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Pipeline Stats</div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-num fire" id="totalTasks">0</div><div class="stat-lbl">Open</div></div>
+      <div class="stat-box"><div class="stat-num fire" id="fireTasks">0</div><div class="stat-lbl">🔥 Fire</div></div>
+      <div class="stat-box"><div class="stat-num soon" id="soonTasks">0</div><div class="stat-lbl">⚡ Soon</div></div>
+      <div class="stat-box"><div class="stat-num done" id="doneTasks">0</div><div class="stat-lbl">✅ Done</div></div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Add Contact / Task</div>
+    <div class="add-form">
+      <input type="text" id="addName" class="add-input" placeholder="Shop name">
+      <input type="text" id="addAction" class="add-input" placeholder="Action / note">
+      <input type="text" id="addPhone" class="add-input" placeholder="Phone">
+      <input type="text" id="addAddr" class="add-input" placeholder="Address (optional)">
+      <div class="add-row">
+        <select id="addPriority" class="add-select">
+          <option value="fire">🔥 Fire</option>
+          <option value="soon">⚡ Soon</option>
+          <option value="pipeline" selected>📈 Pipeline</option>
+          <option value="cold">❄️ Cold</option>
+        </select>
+        <select id="addTag" class="add-select">
+          <option value="call">📞 Call</option>
+          <option value="visit">🚗 Visit</option>
+          <option value="email">✉️ Email</option>
+          <option value="followup">🔁 Follow Up</option>
+        </select>
+      </div>
+      <button class="add-btn" onclick="addTask()">+ Add</button>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All Open</button>
+    <button class="filter-btn" onclick="setFilter('fire',this)">🔥 Fire</button>
+    <button class="filter-btn" onclick="setFilter('soon',this)">⚡ Soon</button>
+    <button class="filter-btn" onclick="setFilter('pipeline',this)">📈 Pipeline</button>
+    <button class="filter-btn" onclick="setFilter('cold',this)">❄️ Cold</button>
+    <button class="filter-btn" onclick="setFilter('call',this)">📞 Calls</button>
+    <button class="filter-btn" onclick="setFilter('visit',this)">🚗 Walk-ins</button>
+    <button class="filter-btn" onclick="setFilter('done',this)">✅ Done</button>
+    <input type="text" class="search-input" id="searchInput" placeholder="Search..." oninput="render()">
+  </div>
+  <div class="main-inner">
+    <div class="tasks-header">
+      <div class="tasks-title">TODAY'S BOARD</div>
+      <div class="tasks-count" id="taskCount"></div>
+    </div>
+    <div id="taskList"></div>
   </div>
 </div>
-
-<div class="tabs">
-  <button class="tab active" data-tab="dashboard">&#128202; Dashboard</button>
-  <button class="tab" data-tab="tasks">&#128293; Tasks</button>
-  <button class="tab" data-tab="accounts">&#128101; Accounts</button>
-  <button class="tab" data-tab="products">&#128230; Products</button>
-  <button class="tab" data-tab="orders">&#129534; Invoices</button>
-  <button class="tab" data-tab="settings">&#9881;&#65039; Settings</button>
-  <button class="tab" data-tab="backup">&#128190; Backup</button>
-</div>
-
-<div id="dashboard" class="screen active"></div>
-<div id="tasks" class="screen"></div>
-<div id="accounts" class="screen"></div>
-<div id="products" class="screen"></div>
-<div id="orders" class="screen"></div>
-<div id="settings" class="screen"></div>
-<div id="backup" class="screen"></div>
 
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════
-// STORAGE KEYS
-// ═══════════════════════════════════════════════════════════
-const SK = 'encore_unified_v2';
-const WEEK_KEY = 'encore_week_earned';
-const BEST_WEEK_KEY = 'encore_best_week';
-const TOTAL_EARNED_KEY = 'encore_total_earned';
-const GOALS_KEY = 'encore_90day_goals'; // NEW — 90-day milestone checkboxes
+const STORAGE_KEY = 'frank_tasks_v3';
+const WEEK_KEY = 'frank_week_v2';
 
-function uid(){ return Math.random().toString(36).slice(2,10); }
-function today(){ return new Date().toISOString().slice(0,10); }
-function nowIso(){ return new Date().toISOString(); }
-function n(v){ return Number(v||0); }
-function currency(v){ return '$'+n(v).toFixed(2); }
-function clone(v){ return JSON.parse(JSON.stringify(v)); }
-function esc(v){ return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-function attr(v){ return String(v??'').replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-function plusDays(d,days){ const dt=d?new Date(d+'T12:00:00'):new Date(); dt.setDate(dt.getDate()+days); return dt.toISOString().slice(0,10); }
-function isTodayOrPast(v){ if(!v) return false; return new Date(v+'T12:00:00')<=new Date(today()+'T23:59:59'); }
+const ALL_CONTACTS = [
+  // ===== 🔥 FIRE — DO TODAY =====
+  {id:1,name:"Vertex Fleet Services",action:"Walk in — 7800 Bristol Pike, same lot as MTH",phone:"267-225-5977",addr:"7800 Bristol Pike, Levittown PA",priority:"fire",tag:"visit",done:false,created:1743800000000},
+  {id:2,name:"Chris Hunter's Auto Repair",action:"SO CLOSE — call and close this week",phone:"610-543-9030",addr:"612 South Ave, Secane PA 19018",priority:"fire",tag:"call",done:false,created:1743800001000},
+  {id:3,name:"Neary Automotive — Tom",action:"Call back after 1pm — spoke already",phone:"215-494-9128",addr:"585 Street Rd, Southampton PA 18966",priority:"fire",tag:"call",done:false,created:1743800002000},
+  {id:4,name:"Gibbons Automotive",action:"Call back for boss lady",phone:"610-566-6999",addr:"502 W Baltimore Ave, Media PA 19063",priority:"fire",tag:"call",done:false,created:1743800003000},
 
-// NEW: format task creation timestamp
-function fmtCreated(ts){
-  if(!ts) return '';
-  const d=new Date(ts);
-  return 'Added '+d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+', '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-}
+  // ===== ⚡ SOON =====
+  {id:5,name:"Kays Auto — Rob",action:"Reorder check — also owns M&W and Larry's",phone:"215-946-5766",addr:"1390 Edgely Rd, Levittown PA 19057",priority:"soon",tag:"call",done:false,created:1743800004000},
+  {id:6,name:"Sabos — Mark",action:"Reorder follow up — was $990 last order. Has M&W and Larry's",phone:"610-849-2195",addr:"1016 Linden St, Bethlehem PA 18018",priority:"soon",tag:"call",done:false,created:1743800005000},
+  {id:7,name:"M&W Exhaust & Auto",action:"Reorder check — Mark's shop",phone:"610-798-1045",addr:"556 Pembroke Rd, Bethlehem PA 18018",priority:"soon",tag:"call",done:false,created:1743800006000},
+  {id:8,name:"Larry's Automotive",action:"Reorder check — ordered 3 drums 5W-30",phone:"610-831-3246",addr:"435 Pembroke Rd, Bethlehem PA 18018",priority:"soon",tag:"call",done:false,created:1743800007000},
+  {id:9,name:"Tri-State Truck & Equipment",action:"Upsell — coolant reorder + grease. Aaron Cohen",phone:"215-876-6999",addr:"8595 Old Bristol Pike, Tullytown PA 19007",priority:"soon",tag:"call",done:false,created:1743800008000},
+  {id:10,name:"Harris Fleet Services",action:"4.8 stars, 24hr — walk in this week",phone:"267-981-0345",addr:"",priority:"soon",tag:"visit",done:false,created:1743800010000},
+  {id:11,name:"Haverford Auto Center",action:"Call the owner directly",phone:"610-645-0900",addr:"610 Haverford Rd, Haverford PA 19041",priority:"soon",tag:"call",done:false,created:1743800011000},
+  {id:12,name:"Dougs Auto",action:"Good lead — follow up",phone:"302-653-7065",addr:"222 E Mill St, Smyrna DE 19977",priority:"soon",tag:"call",done:false,created:1743800012000},
+  {id:13,name:"George and Sam's",action:"Good lead — follow up",phone:"215-675-9462",addr:"228 E Street Rd, Warminster PA 18974",priority:"soon",tag:"call",done:false,created:1743800013000},
+  {id:26,name:"Phoebe — Encore",action:"Follow up: Larry's charges, Oleg charges, AAMCO drum of coolant",phone:"",addr:"",priority:"soon",tag:"call",done:false,created:1775480375716},
 
-// NEW: 90-day goal helpers
-function loadGoals(){ try{return JSON.parse(localStorage.getItem(GOALS_KEY)||'{}');}catch(e){return {};} }
-function toggleGoal(idx){
-  const g=loadGoals();
-  g[idx]=!g[idx];
-  localStorage.setItem(GOALS_KEY,JSON.stringify(g));
-  renderDashboard();
-}
+  // ===== 📈 PIPELINE =====
+  {id:14,name:"Amerit Fleet",action:"Email sent — call to follow up",phone:"",addr:"",priority:"pipeline",tag:"followup",done:false,created:1743800014000},
+  {id:15,name:"One Stop Truck and Trailer",action:"Walk in — 8800 State Rd Philly",phone:"267-261-2287",addr:"8800 State Rd, Philadelphia PA 19136",priority:"pipeline",tag:"visit",done:false,created:1743800015000},
+  {id:16,name:"E&S Truck Repair",action:"Walk in — 800 Bristol Pike Morrisville",phone:"267-981-2857",addr:"800 Bristol Pike, Morrisville PA 19067",priority:"pipeline",tag:"visit",done:false,created:1743800016000},
+  {id:17,name:"Truck House",action:"Walk in — 9300 Blue Grass Rd Philly",phone:"267-255-5723",addr:"9300 Blue Grass Rd, Philadelphia PA 19114",priority:"pipeline",tag:"visit",done:false,created:1743800017000},
+  {id:18,name:"ASM Truck Repair",action:"Marcus Hook PA — truck shop, high volume",phone:"914-355-1199",addr:"3300 W 4th St, Marcus Hook PA 19061",priority:"pipeline",tag:"visit",done:false,created:1743800018000},
+  {id:19,name:"River Road Truckin LLC",action:"Trucking company — bulk oil buyer",phone:"856-757-4351",addr:"1720 River Rd, Camden NJ 08105",priority:"pipeline",tag:"call",done:false,created:1743800019000},
+  {id:20,name:"A1 Auto & Truck Repair",action:"Email price list to a1auto65@gmail.com",phone:"609-298-4555",addr:"3023 US-206, Columbus NJ 08022",priority:"pipeline",tag:"email",done:false,created:1743800020000},
+  {id:21,name:"Universal Tire and Auto",action:"Just filled — call when they need oil",phone:"215-943-3600",addr:"551 S Oxford Valley Rd, Fairless Hills PA 19030",priority:"pipeline",tag:"followup",done:false,created:1743800021000},
+  {id:22,name:"Black Stone — Dino",action:"Tank has roof leak — check tank, pitch scheduled delivery",phone:"215-949-0181",addr:"7603 Bristol Pike, Levittown PA 19057",priority:"pipeline",tag:"visit",done:false,created:1743800022000},
+  {id:23,name:"Fat Kid Motorsports — Drew",action:"Email: drew@fatkidmotorsports.net",phone:"215-420-7165",addr:"435 Jacksonville Rd, Hatboro PA 19040",priority:"pipeline",tag:"email",done:false,created:1743800023000},
+  {id:27,name:"Truck East Repair",action:"Not interested — GOM visit. Try again",phone:"267-400-5396",addr:"2950 Castor Ave",priority:"pipeline",tag:"visit",done:false,created:1775480000001},
+  {id:28,name:"Phila Truck Repair",action:"Walk in — Castor Ave",phone:"215-437-7377",addr:"Castor Ave, Philadelphia PA",priority:"pipeline",tag:"visit",done:false,created:1775480000002},
+  {id:29,name:"PA Truck Center",action:"Walk in — Grant Ave",phone:"215-701-1145",addr:"3030 Grant Ave, Philadelphia PA",priority:"pipeline",tag:"visit",done:false,created:1775480000003},
+  {id:30,name:"Delaware Valley Truck",action:"Ask for Shawn",phone:"215-338-2500",addr:"5201 Unruh Ave, Philadelphia PA",priority:"pipeline",tag:"visit",done:false,created:1775480000004},
+  {id:31,name:"Fix My Trucks LLC",action:"Walk in — 7800 Bristol Pike lot",phone:"484-370-7500",addr:"7800 Bristol Pike, Levittown PA 19057",priority:"pipeline",tag:"visit",done:false,created:1775480000005},
+  {id:32,name:"Stowe's Auto Repair",action:"Lead — call to introduce",phone:"610-534-9125",addr:"102 S Chester Pike, Norwood PA 19074",priority:"pipeline",tag:"call",done:false,created:1775480000006},
+  {id:33,name:"Johnny's Auto",action:"Lead — call to introduce",phone:"856-779-0690",addr:"106 W Main St, Maple Shade NJ 08052",priority:"pipeline",tag:"call",done:false,created:1775480000007},
+  {id:34,name:"Wizard Auto Repair",action:"Ordered — reorder follow up ~Apr 28",phone:"215-750-5514",addr:"2525 Bridgetown Pike, Feasterville Trevose PA 19053",priority:"pipeline",tag:"followup",done:false,created:1775480000008},
+  {id:35,name:"Germosen Truck and Auto",action:"Truck shop — walk in or call",phone:"215-456-0880",addr:"4425 Rising Sun Ave, Philadelphia PA 19140",priority:"pipeline",tag:"visit",done:false,created:1775480000009},
 
-const SEEDED_ACCOUNTS = [{"id":"ob7y1t73","shopName":"Black Stone","contactName":"Dino","phone":"215-949-0181","email":"","address":"7603 Bristol Pike, Levittown, PA 19057","status":"delivered","firstTouchDate":"2026-03-03","nextFollowUpDate":"2026-03-09","lastOrderDate":"","lastDeliveryDate":"","nextReorderFollowUpDate":"","notes":"Supplier: atoz | Current price: $6.75/gal | Pain: tank has roof leak above it | after alignment need i9nspection and drop off oil burner","tags":"imported"},{"id":"ppagky4x","shopName":"Kays Auto","contactName":"Rob","phone":"215-946-5766","email":"","address":"1390 Edgely Rd, Levittown, PA 19057","status":"ordered","firstTouchDate":"2026-03-01","nextFollowUpDate":"","lastOrderDate":"","lastDeliveryDate":"","nextReorderFollowUpDate":"","notes":"Supplier: atoz | Current price: $10.0/gal | Pain: Lack of Oil","tags":"imported"},{"id":"6ynhibzb","shopName":"Sabo's","contactName":"Mark","phone":"610-849-2195","email":"","address":"1016 Linden Street Bethelhem, PA 18018","status":"delivered","firstTouchDate":"2026-03-04","nextFollowUpDate":"2026-03-09","lastOrderDate":"","lastDeliveryDate":"","nextReorderFollowUpDate":"","notes":"Supplier: atoz | Current price: $9.0/gal | Pain: Lack of Oil | has 2 other shops: M&W and Larry's","tags":"imported"},{"id":"nypk1laq","shopName":"Stowe's Auto Repair","contactName":"","phone":"610-534-9125","email":"","address":"102 S Chester Pike, Norwood PA 19074","status":"lead","firstTouchDate":"2026-03-01","nextFollowUpDate":"","lastOrderDate":"","lastDeliveryDate":"","nextReorderFollowUpDate":"","notes":"","tags":"imported"},{"id":"pvfw2k35","shopName":"Johnny's Auto","contactName":"","phone":"856-779-0690","email":"","address":"106 W Main St, Maple Shade NJ 08052","status":"lead","firstTouchDate":"2026-03-01","nextFollowUpDate":"","lastOrderDate":"","lastDeliveryDate":"","nextReorderFollowUpDate":"","notes":"","tags":"imported"},{"id":"eqji37d5","shopName":"Wizard Auto Repair","contactName":"","phone":"215-750-5514","email":"","address":"2525 Bridgetown Pike, Feasterville Trevose PA 19053","status":"lead","firstTouchDate":"2026-03-01","nextFollowUpDate":"","lastOrderDate":"","lastDeliveryDate":"","nextReorderFollowUpDate":"","notes":"","tags":"imported"},{"id":"mu2vm427","shopName":"M&W Exhaust & Auto Repair","contactName":"","phone":"610-798-1045","email":"","address":"556 Pembroke Rd, Bethlehem PA 18018","status":"lead","firstTouchDate":"2026-03-01","nextFollowUpDate":"","lastOrderDate":"","lastDeliveryDate":"","nextReorderFollowUpDate":"","notes":"","tags":"imported"},{"id":"emvgipqn","shopName":"Larry's Automotive","contactName":"","phone":"610-831-3246","email":"","address":"435 Pembroke Rd, Bethlehem PA 18018","status":"lead","firstTouchDate":"2026-03-01","nextFollowUpDate":"","lastOrderDate":"","lastDeliveryDate":"","nextReorderFollowUpDate":"","notes":"","tags":"imported"},{"id":"w9bh21t0","shopName":"tri state truck and equipment repair","contactName":"aaron cohen","phone":"2158766999","email":"","address":"8595 old bristol pike tullytown pa 19007","status":"lead","firstTouchDate":"2026-03-01","nextFollowUpDate":"","lastOrderDate":"","lastDeliveryDate":"","nextReorderFollowUpDate":"","notes":"","tags":"imported"},{"id":"6w81ax9t","shopName":"fix My Trucks LLC","contactName":"","phone":"4843707500","email":"","address":"7800 bristol pike levittown pa 19057","status":"lead","firstTouchDate":"2026-03-01","nextFollowUpDate":"","lastOrderDate":"","lastDeliveryDate":"","nextReorderFollowUpDate":"","notes":"","tags":"imported"}];
-
-const DEFAULTS = {
-  accounts:[],products:[],orders:[],tasks:null,
-  settings:{
-    companyName:'Encore Petroleum, LLC',companyPhone:'(201) 339-6100',companyEmail:'contact@encorepetroleum.com',
-    salesContact:'Frank Capozzi',salesEmail:'frankhasoil@gmail.com',
-    companyAddress:'180 W 5th Street, Bayonne, NJ 07002',logoUrl:'',
-    paymentTerms:'Due at delivery / prepaid card',invoicePrefix:'INV-',nextInvoiceNumber:1001,
-    phoebeName:'Phoebe',phoebeEmail:'phoebe@encorepetroleum.com',
-    defaultDeliveryCharge:6.95,defaultDrumDeposit:0,defaultTaxRate:0,commissionRate:7,
-    reorderDaysDefault:21,
-    defaultDisclaimer:'All prices subject to change due to volatile petroleum market conditions.',
-    customerEmailMessage:'Attached is your invoice from Encore Petroleum. Please review and keep this for your records.',
-    fulfillmentEmailMessage:'Attached is the fulfillment copy for processing and delivery scheduling.'
-  }
-};
-
-const DEFAULT_TASKS = [{"id":1,"name":"Vertex Fleet Services","action":"Walk in — 7800 Bristol Pike, same lot as MTH","phone":"267-225-5977","priority":"fire","tag":"visit","done":false,"created":1743800000000},{"id":2,"name":"Chris Hunter's Auto Repair","action":"SO CLOSE — call and close this week","phone":"610-543-9030","priority":"fire","tag":"call","done":false,"created":1743800001000},{"id":3,"name":"Neary Automotive — Tom","action":"Call back after 1pm — spoke already","phone":"215-494-9128","priority":"fire","tag":"call","done":false,"created":1743800002000},{"id":4,"name":"Gibbons Automotive","action":"Call back for boss lady","phone":"610-566-6999","priority":"fire","tag":"call","done":false,"created":1743800003000},{"id":5,"name":"Kays Auto — Rob","action":"Reorder check — also owns M&W and Larry's","phone":"215-946-5766","priority":"soon","tag":"call","done":false,"created":1743800004000},{"id":6,"name":"Sabos — Mark","action":"Reorder follow up — was $990 last","phone":"610-849-2195","priority":"soon","tag":"call","done":false,"created":1743800005000},{"id":7,"name":"M&W Exhaust & Auto","action":"Reorder check","phone":"610-798-1045","priority":"soon","tag":"call","done":false,"created":1743800006000},{"id":8,"name":"Larry's Automotive","action":"Reorder check","phone":"610-831-3246","priority":"soon","tag":"call","done":false,"created":1743800007000},{"id":9,"name":"Tri-State Truck & Equipment","action":"Upsell — coolant reorder + grease","phone":"215-876-6999","priority":"soon","tag":"call","done":false,"created":1743800008000},{"id":10,"name":"Speedy Semi Truck & Trailer","action":"4.9 stars, 24hr shop — walk in this week","phone":"609-456-5621","priority":"soon","tag":"visit","done":false,"created":1743800009000},{"id":11,"name":"Harris Fleet Services","action":"4.8 stars, 24hr — walk in this week","phone":"267-981-0345","priority":"soon","tag":"visit","done":false,"created":1743800010000},{"id":12,"name":"Haverford Auto Center","action":"Call the owner directly","phone":"610-645-0900","priority":"soon","tag":"call","done":false,"created":1743800011000},{"id":13,"name":"Dougs Auto","action":"Good lead — follow up","phone":"302-653-7065","priority":"soon","tag":"call","done":false,"created":1743800012000},{"id":14,"name":"George and Sam's","action":"Good lead — follow up","phone":"215-675-9462","priority":"soon","tag":"call","done":false,"created":1743800013000},{"id":15,"name":"Amerit Fleet","action":"Email sent — call to follow up","phone":"","priority":"pipeline","tag":"followup","done":false,"created":1743800014000},{"id":16,"name":"One Stop Truck & Trailer","action":"8800 State Rd Philly — walk in","phone":"267-261-2287","priority":"pipeline","tag":"visit","done":false,"created":1743800015000},{"id":17,"name":"E&S Truck Repair","action":"800 Bristol Pike Morrisville — walk in","phone":"267-981-2857","priority":"pipeline","tag":"visit","done":false,"created":1743800016000},{"id":18,"name":"Truck House","action":"9300 Blue Grass Rd Philly — walk in","phone":"267-255-5723","priority":"pipeline","tag":"visit","done":false,"created":1743800017000},{"id":19,"name":"ASM Truck Repair","action":"Marcus Hook PA — truck shop, high volume","phone":"914-355-1199","priority":"pipeline","tag":"visit","done":false,"created":1743800018000},{"id":20,"name":"River Road Truckin LLC","action":"Trucking company — bulk oil buyer","phone":"856-757-4351","priority":"pipeline","tag":"call","done":false,"created":1743800019000},{"id":21,"name":"A1 Auto & Truck Repair","action":"Email: a1auto65@gmail.com — send price list","phone":"609-298-4555","priority":"pipeline","tag":"email","done":false,"created":1743800020000},{"id":22,"name":"Universal Tire and Auto","action":"Just filled — call when they need oil","phone":"215-943-3600","priority":"pipeline","tag":"followup","done":false,"created":1743800021000},{"id":23,"name":"Black Stone — Dino","action":"Tank has roof leak — check tank, pitch scheduled delivery","phone":"215-949-0181","priority":"pipeline","tag":"visit","done":false,"created":1743800022000},{"id":24,"name":"Fat Kid Motorsports — Drew","action":"Email: drew@fatkidmotorsports.net","phone":"215-420-7165","priority":"cold","tag":"email","done":false,"created":1743800023000}];
-
-const DEFAULT_PRODUCTS = [
-  {id:uid(),name:'Full Synthetic 0W-20',unit:'Drum',price:494,category:'Engine Oil',sku:'FS-0W20',active:true,notes:'$8.97/gal'},
-  {id:uid(),name:'Full Synthetic 5W-20',unit:'Drum',price:494,category:'Engine Oil',sku:'FS-5W20',active:true,notes:'$8.97/gal'},
-  {id:uid(),name:'Full Synthetic 5W-30',unit:'Drum',price:494,category:'Engine Oil',sku:'FS-5W30',active:true,notes:'$8.97/gal'},
-  {id:uid(),name:'Full Synthetic 10W-30',unit:'Drum',price:494,category:'Engine Oil',sku:'FS-10W30',active:true,notes:'$8.97/gal'},
-  {id:uid(),name:'HD CK-4+ Full Syn 15W-40',unit:'Drum',price:605,category:'HD Engine Oil',sku:'HD-15W40',active:true,notes:'$10.99/gal'},
-  {id:uid(),name:'HD CK-4+ Conv Blend 15W-40',unit:'Drum',price:605,category:'HD Engine Oil',sku:'HDC-15W40',active:true,notes:'$10.99/gal'},
-  {id:uid(),name:'HD CK-4+ Full Syn 5W-40',unit:'Drum',price:605,category:'HD Engine Oil',sku:'HD-5W40',active:true,notes:'$10.99/gal'},
-  {id:uid(),name:'30W / 40W Motor Oil',unit:'Drum',price:525,category:'Engine Oil',sku:'30-40W',active:true,notes:''},
-  {id:uid(),name:'20W-50 Motor Oil',unit:'Drum',price:550,category:'Engine Oil',sku:'20W50',active:true,notes:''},
-  {id:uid(),name:'Allison ATF',unit:'Drum',price:2900,category:'Transmission',sku:'ATF-ALL',active:true,notes:'Pail: $373'},
-  {id:uid(),name:'Allison ATF',unit:'Pail',price:373,category:'Transmission',sku:'ATF-ALL-P',active:true,notes:''},
-  {id:uid(),name:'CVT-LV Fluid',unit:'Drum',price:595,category:'Transmission',sku:'CVT-LV',active:true,notes:'Low viscosity CVT'},
-  {id:uid(),name:'AW-32 Hydraulic Oil',unit:'Drum',price:450,category:'Hydraulic',sku:'HYD-32',active:true,notes:'$8.18/gal'},
-  {id:uid(),name:'AW-46 Hydraulic Oil',unit:'Drum',price:450,category:'Hydraulic',sku:'HYD-46',active:true,notes:'$8.18/gal'},
-  {id:uid(),name:'Power Steering Fluid',unit:'Pail',price:95,category:'Hydraulic',sku:'PSF',active:true,notes:''},
-  {id:uid(),name:'Red Grease',unit:'Keg (120 lb)',price:350,category:'Grease',sku:'RG-KEG',active:true,notes:''},
-  {id:uid(),name:'Red Grease',unit:'Pail (5 gal)',price:89,category:'Grease',sku:'RG-PAIL',active:true,notes:''},
-  {id:uid(),name:'Red Grease',unit:'Case',price:175,category:'Grease',sku:'RG-CASE',active:true,notes:''},
-  {id:uid(),name:'All-Purpose Grease',unit:'Keg',price:249,category:'Grease',sku:'APG-KEG',active:true,notes:''},
-  {id:uid(),name:'Moly Grey Grease',unit:'Case',price:130,category:'Grease',sku:'MGG',active:true,notes:''},
-  {id:uid(),name:'Green 50/50 Coolant',unit:'Drum',price:298,category:'Coolant',sku:'COOL-G50',active:true,notes:'$5.42/gal'},
-  {id:uid(),name:'Red 50/50 Coolant',unit:'Drum',price:319,category:'Coolant',sku:'COOL-R50',active:true,notes:'$5.80/gal'},
-  {id:uid(),name:'Universal Gold 100% Conc.',unit:'Drum',price:514,category:'Coolant',sku:'COOL-G100',active:true,notes:'$9.35/gal'},
-  {id:uid(),name:'Green 100% Concentrate',unit:'Drum',price:479,category:'Coolant',sku:'COOL-GRN',active:true,notes:'$8.71/gal'},
-  {id:uid(),name:'75W-90 / 80W-90 Gear Oil',unit:'Drum',price:256,category:'Gear Oil',sku:'GO-7590',active:true,notes:'$4.65/gal'},
-  {id:uid(),name:'WWF',unit:'Drum',price:200,category:'Shop Fluids',sku:'WWF',active:true,notes:'$3.64/gal'},
-  {id:uid(),name:'Mineral Spirits',unit:'Drum',price:575,category:'Shop Fluids',sku:'MINS',active:true,notes:'$10.45/gal'},
-  {id:uid(),name:'Methanol',unit:'Drum',price:275,category:'Shop Fluids',sku:'METH',active:true,notes:''},
-  {id:uid(),name:'20W Compressor Oil',unit:'Case',price:73,category:'Industrial',sku:'COMP-20W',active:true,notes:''},
-  {id:uid(),name:'Bar & Chain Oil',unit:'Case (6x1 gal)',price:79,category:'Industrial',sku:'BAR-CASE',active:true,notes:''},
-  {id:uid(),name:'Bar & Chain Oil',unit:'Drum',price:485,category:'Industrial',sku:'BAR-DRUM',active:true,notes:''},
-  {id:uid(),name:'DEF — Diesel Exhaust Fluid',unit:'Drum',price:349,category:'DEF / Fuel',sku:'DEF',active:true,notes:'Required for all DEF-equipped diesel'},
-  {id:uid(),name:'Kerosene',unit:'Drum',price:350,category:'DEF / Fuel',sku:'KERO',active:true,notes:''},
+  // ===== ❄️ COLD — BUILD THE LIST =====
+  {id:50,name:"Sangillo Tire Center",action:"Cold call — intro",phone:"610-586-3340",addr:"1114 MacDade Blvd, Folsom PA 19033",priority:"cold",tag:"call",done:false,created:1775480000050},
+  {id:51,name:"Bear's Auto Service",action:"Cold call — intro",phone:"215-295-5378",addr:"115 E Bridge St, Morrisville PA 19067",priority:"cold",tag:"call",done:false,created:1775480000051},
+  {id:52,name:"Barela Auto (Philadelphia)",action:"Cold call — intro",phone:"215-888-4710",addr:"11500 Roosevelt Blvd, Philadelphia PA 19116",priority:"cold",tag:"call",done:false,created:1775480000052},
+  {id:53,name:"Barela Auto (Hatboro)",action:"Cold call — intro",phone:"267-442-8376",addr:"230 Tanner Ave, Hatboro PA 19040",priority:"cold",tag:"call",done:false,created:1775480000053},
+  {id:54,name:"Al's Service Center",action:"Cold call — intro",phone:"609-392-8328",addr:"119 Winterwood Ave, Ewing NJ 08638",priority:"cold",tag:"call",done:false,created:1775480000054},
+  {id:55,name:"Brightsmith Coaters",action:"Cold call — industrial, could use hydraulic",phone:"215-295-4158",addr:"120 Enterprise Ave, Morrisville PA 19067",priority:"cold",tag:"call",done:false,created:1775480000055},
+  {id:56,name:"Raj Auto Center (Somerset)",action:"Cold call — intro",phone:"732-249-2888",addr:"1213 NJ-27, Somerset NJ 08873",priority:"cold",tag:"call",done:false,created:1775480000056},
+  {id:57,name:"D&A Auto Center",action:"Cold call — intro",phone:"267-241-9802",addr:"12301 McNulty Rd, Philadelphia PA 19154",priority:"cold",tag:"call",done:false,created:1775480000057},
+  {id:58,name:"SK Automotive",action:"Cold call — intro",phone:"215-393-7888",addr:"1238 N Broad St, Lansdale PA 19446",priority:"cold",tag:"call",done:false,created:1775480000058},
+  {id:59,name:"Hurst Automotive Center",action:"Cold call — intro",phone:"215-826-9002",addr:"132 Otter St, Bristol PA 19007",priority:"cold",tag:"call",done:false,created:1775480000059},
+  {id:60,name:"Secane Station Auto Repair",action:"Cold call — intro",phone:"610-284-2950",addr:"137 E Baltimore Ave, Clifton Heights PA 19018",priority:"cold",tag:"call",done:false,created:1775480000060},
+  {id:61,name:"Valley Auto Craft",action:"Cold call — intro",phone:"215-938-7470",addr:"140 Tomlinson Rd, Huntingdon Valley PA 19006",priority:"cold",tag:"call",done:false,created:1775480000061},
+  {id:62,name:"Raj Auto Center (N Brunswick)",action:"Cold call — intro",phone:"732-249-5535",addr:"1400 Jersey Ave, North Brunswick NJ 08902",priority:"cold",tag:"call",done:false,created:1775480000062},
+  {id:63,name:"Rob's Garage",action:"Cold call — intro",phone:"856-939-8591",addr:"150 Carriage Ln, Delran NJ 08075",priority:"cold",tag:"call",done:false,created:1775480000063},
+  {id:64,name:"Meineke (Bethlehem)",action:"Cold call — franchise location",phone:"484-892-6128",addr:"1517 Stefko Blvd, Bethlehem PA 18017",priority:"cold",tag:"call",done:false,created:1775480000064},
+  {id:65,name:"Cottman Transmission",action:"Cold call — intro",phone:"302-414-0652",addr:"1600 N Dupont Hwy, New Castle DE 19720",priority:"cold",tag:"call",done:false,created:1775480000065},
+  {id:66,name:"Ivan's Auto Repair",action:"Cold call — intro",phone:"856-314-8861",addr:"1601 Cinnaminson Ave, Cinnaminson NJ 08077",priority:"cold",tag:"call",done:false,created:1775480000066},
+  {id:67,name:"Lucky Automotive",action:"Cold call — intro",phone:"215-635-5252",addr:"1617 W Cheltenham Ave, Elkins Park PA 19027",priority:"cold",tag:"call",done:false,created:1775480000067},
+  {id:68,name:"City Auto Center",action:"Cold call — intro",phone:"609-448-9800",addr:"180 Mercer St, Hightstown NJ 08520",priority:"cold",tag:"call",done:false,created:1775480000068},
+  {id:69,name:"Mongo's Repair",action:"Cold call — intro",phone:"856-786-5101",addr:"1808 Taylor's Ln, Cinnaminson NJ 08077",priority:"cold",tag:"call",done:false,created:1775480000069},
+  {id:70,name:"Ray's Automotive",action:"Cold call — intro",phone:"484-494-5110",addr:"1899 Delmar Dr, Folcroft PA 19032",priority:"cold",tag:"call",done:false,created:1775480000070},
+  {id:71,name:"Michaels Auto Service",action:"Cold call — intro",phone:"724-327-0037",addr:"1905 Newport Gap Pike, Wilmington DE 19808",priority:"cold",tag:"call",done:false,created:1775480000071},
+  {id:72,name:"Mickey's Auto Repair",action:"Cold call — intro",phone:"215-339-9555",addr:"1937 S Chadwick St, Philadelphia PA 19145",priority:"cold",tag:"call",done:false,created:1775480000072},
+  {id:73,name:"Meineke (Darby)",action:"Cold call — franchise location",phone:"610-228-0327",addr:"195 MacDade Blvd, Darby PA 19023",priority:"cold",tag:"call",done:false,created:1775480000073},
+  {id:74,name:"Magic Auto Service and Repair",action:"Cold call — intro",phone:"856-547-0373",addr:"200 White Horse Pike, Audubon NJ 08106",priority:"cold",tag:"call",done:false,created:1775480000074},
+  {id:75,name:"Kellers Auto Repair",action:"Cold call — intro",phone:"856-768-0025",addr:"210 Haddon Ave, West Berlin NJ 08091",priority:"cold",tag:"call",done:false,created:1775480000075},
+  {id:76,name:"Garrisons Garage and Tire",action:"Cold call — intro",phone:"215-426-2714",addr:"2335 E Gordon St, Philadelphia PA 19125",priority:"cold",tag:"call",done:false,created:1775480000076},
+  {id:77,name:"Brad Smith Service",action:"Cold call — intro",phone:"610-532-2156",addr:"247 E Chester Pike, Ridley Park PA 19078",priority:"cold",tag:"call",done:false,created:1775480000077},
+  {id:78,name:"Car Care Center",action:"Cold call — intro",phone:"610-539-0405",addr:"2491 W Main St, Norristown PA 19403",priority:"cold",tag:"call",done:false,created:1775480000078},
+  {id:79,name:"H&B Auto",action:"Cold call — intro",phone:"610-497-0311",addr:"2524 W 3rd St, Chester PA 19013",priority:"cold",tag:"call",done:false,created:1775480000079},
+  {id:80,name:"Meineke (Whitehall)",action:"Cold call — franchise location",phone:"484-268-1325",addr:"2717 MacArthur Rd, Whitehall PA 18052",priority:"cold",tag:"call",done:false,created:1775480000080},
+  {id:81,name:"Karrigan Automotive",action:"Cold call — intro",phone:"215-698-7244",addr:"2899 Holme Ave, Philadelphia PA 19136",priority:"cold",tag:"call",done:false,created:1775480000081},
+  {id:82,name:"Chuck's Garage",action:"Cold call — intro",phone:"215-842-2200",addr:"296 N Spring Garden St, Ambler PA 19002",priority:"cold",tag:"call",done:false,created:1775480000082},
+  {id:83,name:"Diamond Auto",action:"Cold call — intro",phone:"215-781-1920",addr:"3100 Bath Rd, Bristol PA 19007",priority:"cold",tag:"call",done:false,created:1775480000083},
+  {id:84,name:"K&K Auto Repair",action:"Cold call — intro",phone:"610-277-4777",addr:"320 W Lafayette St, Norristown PA 19401",priority:"cold",tag:"call",done:false,created:1775480000084},
+  {id:85,name:"Lykon",action:"Cold call — intro",phone:"215-788-6018",addr:"3213 Bath Rd, Bristol PA 19007",priority:"cold",tag:"call",done:false,created:1775480000085},
+  {id:86,name:"Fries Mill Auto Repair",action:"Cold call — intro",phone:"856-278-6605",addr:"3251 NJ-42 S, Sicklerville NJ 08081",priority:"cold",tag:"call",done:false,created:1775480000086},
+  {id:87,name:"Richmond Brake",action:"Cold call — intro",phone:"215-425-7514",addr:"3306 Almond St, Philadelphia PA 19134",priority:"cold",tag:"call",done:false,created:1775480000087},
+  {id:88,name:"Gear One Automotive",action:"Cold call — intro",phone:"484-494-6742",addr:"333 S Governor Printz Blvd, Essington PA 19029",priority:"cold",tag:"call",done:false,created:1775480000088},
+  {id:89,name:"Mr. Auto",action:"Cold call — intro",phone:"215-245-1333",addr:"3560 Bristol Pike, Bensalem PA 19020",priority:"cold",tag:"call",done:false,created:1775480000089},
+  {id:90,name:"Central Auto Service",action:"Cold call — intro",phone:"215-386-4205",addr:"3917 Lancaster Ave, Philadelphia PA 19104",priority:"cold",tag:"call",done:false,created:1775480000090},
+  {id:91,name:"Joe Raymonds Auto Service",action:"Cold call — intro",phone:"215-945-7422",addr:"3950 New Falls Rd, Bristol PA 19007",priority:"cold",tag:"call",done:false,created:1775480000091},
+  {id:92,name:"Mike's Auto Works",action:"Cold call — intro",phone:"856-482-9700",addr:"401 S Fellowship Rd, Maple Shade NJ 08052",priority:"cold",tag:"call",done:false,created:1775480000092},
+  {id:93,name:"Willow Grove Automotive",action:"Cold call — intro",phone:"215-659-9827",addr:"401 W Moreland Rd, Willow Grove PA 19090",priority:"cold",tag:"call",done:false,created:1775480000093},
+  {id:94,name:"Loringer's Automotive",action:"Cold call — intro",phone:"610-987-1556",addr:"411 Van Sciver Pkwy, Willingboro NJ 08046",priority:"cold",tag:"call",done:false,created:1775480000094},
+  {id:95,name:"Al's Collision Inc",action:"Cold call — intro",phone:"215-364-1290",addr:"4122 Old Lincoln Hwy, Feasterville Trevose PA 19053",priority:"cold",tag:"call",done:false,created:1775480000095},
+  {id:96,name:"MG Tire Center & Auto Sales",action:"Cold call — intro",phone:"856-963-4555",addr:"423 N 27th St, Camden NJ 08105",priority:"cold",tag:"call",done:false,created:1775480000096},
+  {id:97,name:"Brake Shop (Upper Darby)",action:"Cold call — intro",phone:"610-284-3388",addr:"448 Long Ln, Upper Darby PA 19082",priority:"cold",tag:"call",done:false,created:1775480000097},
+  {id:98,name:"Meineke (Reading)",action:"Cold call — franchise location",phone:"610-314-7222",addr:"4497 Penn Ave, Reading PA 19608",priority:"cold",tag:"call",done:false,created:1775480000098},
+  {id:99,name:"Naz Auto",action:"Cold call — intro",phone:"856-235-1515",addr:"4 Collins Rd, Maple Shade NJ 08052",priority:"cold",tag:"call",done:false,created:1775480000099},
+  {id:100,name:"Indian Mills Auto Repair",action:"Cold call — intro",phone:"609-268-6580",addr:"4 Park Dr, Shamong NJ 08088",priority:"cold",tag:"call",done:false,created:1775480000100},
+  {id:101,name:"Kelley's Auto Repair",action:"Cold call — intro",phone:"215-677-9322",addr:"500 Red Lion Rd, Philadelphia PA 19115",priority:"cold",tag:"call",done:false,created:1775480000101},
+  {id:102,name:"Coyle Brothers Auto Body",action:"Cold call — intro",phone:"215-472-7723",addr:"6147 W Girard Ave, Philadelphia PA 19151",priority:"cold",tag:"call",done:false,created:1775480000102},
+  {id:103,name:"Andrew's Car Care",action:"Cold call — intro",phone:"609-953-8264",addr:"629 Stokes Rd, Medford NJ 08055",priority:"cold",tag:"call",done:false,created:1775480000103},
+  {id:104,name:"Flickers Auto Repair",action:"Cold call — intro",phone:"215-332-4811",addr:"6410 Hegerman St, Philadelphia PA 19135",priority:"cold",tag:"call",done:false,created:1775480000104},
+  {id:105,name:"Tony's Auto Repair",action:"Cold call — intro",phone:"215-493-2017",addr:"64 Ferry St, Yardley PA 19067",priority:"cold",tag:"call",done:false,created:1775480000105},
+  {id:106,name:"John Carney Auto Repair",action:"Cold call — intro",phone:"610-532-2955",addr:"666 Chester Pike, Norwood PA 19074",priority:"cold",tag:"call",done:false,created:1775480000106},
+  {id:107,name:"L & L Automotive Service",action:"Cold call — intro",phone:"215-742-5600",addr:"6701 Rising Sun Ave, Philadelphia PA 19111",priority:"cold",tag:"call",done:false,created:1775480000107},
+  {id:108,name:"Sippel Brothers",action:"Cold call — intro",phone:"215-332-1180",addr:"6912 Edmund St, Philadelphia PA 19135",priority:"cold",tag:"call",done:false,created:1775480000108},
+  {id:109,name:"Competition Auto",action:"Cold call — intro",phone:"484-494-5861",addr:"700 Morton Ave, Folsom PA 19033",priority:"cold",tag:"call",done:false,created:1775480000109},
+  {id:110,name:"Dave's Automotive Center",action:"Cold call — intro",phone:"215-624-8151",addr:"7000 Torresdale Ave, Philadelphia PA 19135",priority:"cold",tag:"call",done:false,created:1775480000110},
+  {id:111,name:"World Auto Body Repair",action:"Cold call — intro",phone:"610-352-4474",addr:"7108 W Chester Pike, Upper Darby PA 19082",priority:"cold",tag:"call",done:false,created:1775480000111},
+  {id:112,name:"American Auto Repair",action:"Cold call — intro",phone:"610-397-0264",addr:"725 Fayette St, Conshohocken PA 19428",priority:"cold",tag:"call",done:false,created:1775480000112},
+  {id:113,name:"Kevin's Auto Richboro",action:"Cold call — intro",phone:"215-364-3201",addr:"762 N Second Street Pike, Richboro PA 18954",priority:"cold",tag:"call",done:false,created:1775480000113},
+  {id:114,name:"Full Circle Automotive",action:"Cold call — intro",phone:"856-335-4992",addr:"770 NJ-73 S, West Berlin NJ 08091",priority:"cold",tag:"call",done:false,created:1775480000114},
+  {id:115,name:"Aaron's Automotive",action:"Cold call — intro",phone:"215-493-3655",addr:"81 E Afton Ave, Yardley PA 19067",priority:"cold",tag:"call",done:false,created:1775480000115},
+  {id:116,name:"Sid's Auto Service",action:"Cold call — intro",phone:"610-534-3004",addr:"820 Woodlawn Ave, Collingdale PA 19023",priority:"cold",tag:"call",done:false,created:1775480000116},
+  {id:117,name:"MAT Auto Repair Center",action:"Cold call — intro",phone:"856-716-6641",addr:"821 N Tuckahoe Rd, Williamstown NJ 08094",priority:"cold",tag:"call",done:false,created:1775480000117},
+  {id:118,name:"H & R Auto Repair",action:"Cold call — intro",phone:"215-946-4000",addr:"909 Trenton Rd, Fairless Hills PA 19030",priority:"cold",tag:"call",done:false,created:1775480000118},
+  {id:119,name:"Aluminodi Customs",action:"Cold call — intro",phone:"610-435-7895",addr:"912 E Highland St, Allentown PA 18109",priority:"cold",tag:"call",done:false,created:1775480000119},
+  {id:120,name:"Kehan's Auto Service",action:"Cold call — intro",phone:"215-624-3935",addr:"9337 Torresdale Ave, Philadelphia PA 19114",priority:"cold",tag:"call",done:false,created:1775480000120},
+  {id:121,name:"Bridge Auto Group",action:"Cold call — intro",phone:"856-767-0196",addr:"94 W White Horse Pike, Berlin NJ 08009",priority:"cold",tag:"call",done:false,created:1775480000121},
+  {id:122,name:"Z Brothers Services Center",action:"Cold call — intro",phone:"215-969-7355",addr:"9853 Bustleton Ave, Philadelphia PA 19115",priority:"cold",tag:"call",done:false,created:1775480000122},
+  {id:123,name:"Term Automotive",action:"Cold call — intro",phone:"856-456-0012",addr:"100 New Broadway, Brooklawn NJ 08030",priority:"cold",tag:"call",done:false,created:1775480000123},
+  {id:124,name:"Colomex",action:"Cold call — intro",phone:"215-329-5395",addr:"100 W Wingohocking St, Philadelphia PA 19140",priority:"cold",tag:"call",done:false,created:1775480000124},
+  {id:125,name:"New Panco Garage",action:"Cold call — intro",phone:"267-721-9497",addr:"7110 West Chester Pike, Upper Darby PA 19082",priority:"cold",tag:"call",done:false,created:1775480000125},
+  {id:126,name:"Edgewater Park Service Center",action:"Cold call — intro",phone:"609-555-1212",addr:"1139 Cooper St, Beverly NJ 08010",priority:"cold",tag:"call",done:false,created:1775480000126},
+  {id:127,name:"Meineke (Sinking Spring)",action:"Cold call — franchise location",phone:"610-314-7222",addr:"4497 Penn Ave, Sinking Spring PA 19608",priority:"cold",tag:"call",done:false,created:1775480000127},
+  {id:128,name:"U-Haul (Pennsauken)",action:"Cold — fleet service potential",phone:"856-324-3010",addr:"6302 S Crescent Blvd, Pennsauken NJ 08109",priority:"cold",tag:"call",done:false,created:1775480000128},
+  {id:129,name:"Secane Station Auto Repair (alt)",action:"Cold call — Clifton Heights",phone:"610-543-9677",addr:"1278 Providence Rd, Secane PA 19018",priority:"cold",tag:"call",done:false,created:1775480000129},
 ];
 
+let tasks = [];
+let curFilter = 'all';
+let nextId = 200;
 
-function loadState(){
-  try{
-    const raw=localStorage.getItem(SK);
-    if(raw){
-      const p=JSON.parse(raw);
-      return {
-        accounts:Array.isArray(p.accounts)&&p.accounts.length?p.accounts:clone(SEEDED_ACCOUNTS),
-        products:Array.isArray(p.products)?p.products:clone(DEFAULT_PRODUCTS),
-        orders:Array.isArray(p.orders)?p.orders:[],
-        tasks:Array.isArray(p.tasks)?p.tasks:clone(DEFAULT_TASKS),
-        settings:{...clone(DEFAULTS.settings),...(p.settings||{})}
-      };
+function load() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      tasks = parsed.tasks || [];
+      nextId = parsed.nextId || 200;
+      // Merge in any new contacts not already saved
+      const existingIds = new Set(tasks.map(t => t.id));
+      ALL_CONTACTS.forEach(c => {
+        if (!existingIds.has(c.id)) tasks.push({...c});
+      });
+    } catch(e) {
+      tasks = ALL_CONTACTS.map(c => ({...c}));
     }
-  }catch(e){}
-  return {accounts:clone(SEEDED_ACCOUNTS),products:clone(DEFAULT_PRODUCTS),orders:[],tasks:clone(DEFAULT_TASKS),settings:clone(DEFAULTS.settings)};
+  } else {
+    tasks = ALL_CONTACTS.map(c => ({...c}));
+  }
 }
-let S=loadState();
-function saveState(){localStorage.setItem(SK,JSON.stringify(S));}
 
-// ── UI STATE ──
-let ui={
-  tab:'dashboard',
-  taskFilter:'all',
-  accountSearch:'',orderSearch:'',productSearch:'',
-  accountView:'prospects', // NEW: 'prospects' or 'customers'
-  taskNextId:Math.max(0,...(S.tasks||[]).map(t=>t.id||0))+1,
-  accountDraft:null,productDraft:null,orderDraft:null
-};
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({tasks, nextId}));
+}
 
-function newAccountDraft(){return{id:'',shopName:'',contactName:'',phone:'',email:'',address:'',status:'lead',firstTouchDate:today(),nextFollowUpDate:plusDays(today(),3),lastOrderDate:'',lastDeliveryDate:'',nextReorderFollowUpDate:'',notes:'',tags:''};}
-function newProductDraft(){return{id:'',name:'',unit:'Drum',price:0,category:'',sku:'',active:true,notes:''};}
-function newLineItem(){return{id:uid(),productId:'',description:'',quantity:1,unit:'Drum',unitPrice:0};}
-function newOrderDraft(){return{id:'',invoiceNumber:(S.settings.invoicePrefix||'')+S.settings.nextInvoiceNumber,accountId:'',customerName:'',contactName:'',phone:'',email:'',address:'',orderDate:today(),expectedDeliveryDate:'',deliveryDate:'',reorderFollowUpDate:plusDays(today(),n(S.settings.reorderDaysDefault)||21),paymentTerms:S.settings.paymentTerms||'',deliveryCharge:n(S.settings.defaultDeliveryCharge),drumDeposit:n(S.settings.defaultDrumDeposit),taxRate:n(S.settings.defaultTaxRate),notes:'Thank you for your business.',internalNotes:'',fulfillmentNotes:'',totalForCommission:0,status:'ordered',items:[newLineItem()]};}
+function updateDate() {
+  const d = new Date();
+  document.getElementById('dateDisplay').textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'}).toUpperCase();
+}
 
-ui.accountDraft=newAccountDraft();
-ui.productDraft=newProductDraft();
-ui.orderDraft=newOrderDraft();
+function calcComm() {
+  const v = parseFloat(document.getElementById('calcInput').value) || 0;
+  document.getElementById('calcResult').textContent = '= $' + (v * 0.07).toFixed(2);
+}
 
-// ── TAB SWITCHING ──
-function switchTab(tab){
-  ui.tab=tab;
-  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
-  document.getElementById(tab).classList.add('active');
-  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+function updateWeekEarnings() {
+  const val = prompt('Enter commission earned this week ($):');
+  if (val !== null && !isNaN(parseFloat(val))) {
+    localStorage.setItem(WEEK_KEY, parseFloat(val));
+    render();
+  }
+}
+
+function setFilter(f, btn) {
+  curFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
   render();
 }
-document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 
-// ── HELPERS ──
-function statusTag(s){
-  const labels={lead:'LEAD',follow_up:'FOLLOW UP',ordered:'ORDERED',delivered:'DELIVERED',lost:'LOST',customer:'CUSTOMER'};
-  return `<span class="tag tag-${s}">${labels[s]||s}</span>`;
-}
-function getAccount(id){return S.accounts.find(x=>x.id===id);}
-function getOrder(id){return S.orders.find(x=>x.id===id);}
-function getProduct(id){return S.products.find(x=>x.id===id);}
-function orderTotals(o){
-  const sub=(o.items||[]).reduce((s,i)=>s+n(i.quantity)*n(i.unitPrice),0);
-  const del=n(o.deliveryCharge),dep=n(o.drumDeposit);
-  const preTax=sub+del+dep;
-  const tax=preTax*(n(o.taxRate)/100);
-  const total=preTax+tax;
-  const base=n(o.totalForCommission)||total;
-  const comm=base*(n(S.settings.commissionRate)/100);
-  return{subtotal:sub,delivery:del,deposit:dep,preTax,tax,total,commissionBase:base,commission:comm};
-}
-
-
-// ═══════════════════════════════════════════════════════════
-// RENDER DASHBOARD — MODIFIED: adds auto-tasks + 90-day goals
-// ═══════════════════════════════════════════════════════════
-function renderDashboard(){
-  const leads=S.accounts.filter(a=>a.status==='lead'||a.status==='follow_up').length;
-  const customers=S.accounts.filter(a=>['customer','ordered','delivered'].includes(a.status)).length;
-  const followsDue=S.accounts.filter(a=>isTodayOrPast(a.nextFollowUpDate)).length;
-  const reorderDue=S.orders.filter(o=>o.reorderFollowUpDate&&isTodayOrPast(o.reorderFollowUpDate)).length;
-  const totalSales=S.orders.reduce((s,o)=>s+n(o.total),0);
-  const totalComm=S.orders.reduce((s,o)=>s+n(o.commission),0);
-  const openTasks=S.tasks.filter(t=>!t.done);
-  const fireTasks=openTasks.filter(t=>t.priority==='fire').length;
-
-  const weekEarned=parseFloat(localStorage.getItem(WEEK_KEY)||'0');
-  const bestWeek=parseFloat(localStorage.getItem(BEST_WEEK_KEY)||'792');
-  const totalEarned=parseFloat(localStorage.getItem(TOTAL_EARNED_KEY)||'1267');
-  const pct=Math.min(100,(weekEarned/3500)*100);
-  const gap=3500-weekEarned;
-
-  const followRows=S.accounts.filter(a=>isTodayOrPast(a.nextFollowUpDate)).slice(0,6)
-    .map(a=>`<tr><td>${esc(a.shopName)}</td><td>${statusTag(a.status)}</td><td>${a.nextFollowUpDate||''}</td><td>${esc(a.contactName||'')}</td></tr>`).join('');
-  const reorderRows=S.orders.filter(o=>o.reorderFollowUpDate&&isTodayOrPast(o.reorderFollowUpDate)).slice(0,6)
-    .map(o=>`<tr><td>${esc(o.customerName)}</td><td>${esc(o.invoiceNumber)}</td><td>${o.reorderFollowUpDate}</td><td>${currency(o.total)}</td></tr>`).join('');
-
-  // ── NEW: DAILY AUTO-TASKS ──
-  const autoItems=[];
-  const isCustomer=a=>['ordered','delivered','customer'].includes(a.status);
-  if(!S.accounts.some(a=>a.shopName.toLowerCase().includes('miller')&&isCustomer(a)))
-    autoItems.push({p:'fire',text:"Call Miller's Quick Lube — close this account today",phone:'215-949-XXXX'});
-  if(!S.accounts.some(a=>a.shopName.toLowerCase().includes('wizard')&&isCustomer(a)))
-    autoItems.push({p:'fire',text:"Call Wizard Auto Repair — close this account",phone:'215-750-5514'});
-  if(!S.accounts.some(a=>a.shopName.toLowerCase().includes("sabo")&&isCustomer(a)))
-    autoItems.push({p:'fire',text:"Follow up Sabo's (Mark) — he owns M&W + Larry's too",phone:'610-849-2195'});
-  if(weekEarned<800)
-    autoItems.push({p:'soon',text:'Make 15+ cold calls today — $'+(800-weekEarned).toFixed(0)+' still needed to hit $800/wk target'});
-  const dueToday=S.accounts.filter(a=>isTodayOrPast(a.nextFollowUpDate)&&!isCustomer(a)).slice(0,3);
-  dueToday.forEach(a=>autoItems.push({p:'soon',text:'Follow up: '+a.shopName+(a.contactName?' ('+a.contactName+')':''),phone:a.phone||''}));
-  if(customers<10)
-    autoItems.push({p:'pipeline',text:(10-customers)+' more shops needed to hit 10-customer milestone (at '+customers+' now)'});
-  if(customers>=1&&customers<5)
-    autoItems.push({p:'pipeline',text:'Ask each existing customer for 1 referral today'});
-
-  const pColor={fire:'rgba(240,123,123,.35)',soon:'rgba(255,154,60,.3)',pipeline:'rgba(63,184,122,.2)'};
-  const pDot={fire:'var(--red)',soon:'var(--orange)',pipeline:'var(--green)'};
-  const autoHtml=autoItems.length
-    ?autoItems.map(item=>`
-      <div class="auto-task-item" style="border:1px solid ${pColor[item.p]}">
-        <div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;background:${pDot[item.p]}"></div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:500">${esc(item.text)}</div>
-          ${item.phone&&item.phone.indexOf('X')<0?`<div class="task-phone">${esc(item.phone)}</div>`:''}
-        </div>
-      </div>`).join('')
-    :`<div style="color:var(--green);font-size:13px;padding:8px;font-family:var(--mono)">All priority targets checked ✅</div>`;
-
-  // ── NEW: 90-DAY GOALS ──
-  const GOAL_LIST=[
-    {label:"Close Miller's Quick Lube",auto:S.accounts.some(a=>a.shopName.toLowerCase().includes('miller')&&isCustomer(a))},
-    {label:"Make mortgage payment ($1,600)",auto:false},
-    {label:"10 customers ordered",auto:customers>=10},
-    {label:"Hit $800/week commission",auto:weekEarned>=800},
-    {label:"30 customers total",auto:customers>=30},
-    {label:"Hit $1,500/week commission",auto:weekEarned>=1500},
-    {label:"Hit $3,500/week — MAIN GOAL 🏆",auto:weekEarned>=3500},
-  ];
-  const savedGoals=loadGoals();
-  const doneCount=GOAL_LIST.filter((g,i)=>g.auto||savedGoals[i]).length;
-  const goalsHtml=GOAL_LIST.map((g,i)=>{
-    const checked=g.auto||savedGoals[i];
-    return `<div class="goal-item" onclick="toggleGoal(${i})">
-      <div class="goal-cb ${checked?'checked':''}">${checked?'<span style="color:#000;font-size:11px;font-weight:900">&#10003;</span>':''}</div>
-      <div style="font-size:13px;flex:1;${checked?'text-decoration:line-through;color:var(--muted)':''}">${esc(g.label)}</div>
-      ${g.auto?'<span style="font-size:9px;color:var(--green);font-family:var(--mono);background:rgba(63,184,122,.1);padding:2px 6px;border-radius:3px">AUTO</span>':''}
-    </div>`;
-  }).join('');
-
-  document.getElementById('dashboard').innerHTML=`
-    <div class="kpi">
-      <div class="metric-card"><div class="metric-label">&#128293; On Fire Tasks</div><div class="metric-val red">${fireTasks}</div><div class="metric-sub">do today</div></div>
-      <div class="metric-card" onclick="updateTotalEarned()" style="cursor:pointer"><div class="metric-label">Total Earned &#9998;</div><div class="metric-val green">$${totalEarned.toFixed(0)}</div><div class="metric-sub">all time</div></div>
-      <div class="metric-card" onclick="updateBestWeek()" style="cursor:pointer"><div class="metric-label">Best Week &#9998;</div><div class="metric-val">${currency(bestWeek)}</div><div class="metric-sub">personal best</div></div>
-      <div class="metric-card"><div class="metric-label">Open Leads</div><div class="metric-val blue">${leads}</div></div>
-      <div class="metric-card"><div class="metric-label">Active Customers</div><div class="metric-val green">${customers}</div></div>
-      <div class="metric-card"><div class="metric-label">Follow Ups Due</div><div class="metric-val ${followsDue?'red':'green'}">${followsDue}</div></div>
-      <div class="metric-card"><div class="metric-label">Reorder Reminders</div><div class="metric-val ${reorderDue?'orange':'green'}">${reorderDue}</div></div>
-      <div class="metric-card"><div class="metric-label">Total Recorded Sales</div><div class="metric-val">${currency(totalSales)}</div></div>
-      <div class="metric-card"><div class="metric-label">Total Commission</div><div class="metric-val green">${currency(totalComm)}</div><div class="metric-sub">${S.settings.commissionRate}%</div></div>
-    </div>
-
-    <div class="goal-wrap">
-      <div class="metric-label">WEEKLY GOAL — $3,500</div>
-      <div class="goal-track"><div class="goal-fill" style="width:${pct}%"></div></div>
-      <div class="goal-nums">
-        <span class="goal-earned" onclick="updateWeekEarnings()" style="cursor:pointer">$${weekEarned.toFixed(0)} earned this week &#9998;</span>
-        <span class="goal-target">$3,500 goal</span>
-      </div>
-      <div class="goal-gap">${gap>0?'$'+gap.toFixed(0)+' to go':'&#10003; GOAL HIT!'}</div>
-    </div>
-
-    <div class="g2" style="margin-bottom:14px">
-      <div class="card" style="border-color:rgba(232,200,74,.4)">
-        <div class="card-title">&#9889; Today's Actions — 90-Day Plan</div>
-        ${autoHtml}
-      </div>
-      <div class="card">
-        <div class="card-title">&#127919; 90-Day Milestones <span style="font-size:12px;color:var(--muted);font-family:var(--mono)">(${doneCount}/${GOAL_LIST.length})</span></div>
-        <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:10px">Click to check off. AUTO = detected from your data.</div>
-        ${goalsHtml}
-      </div>
-    </div>
-
-    <div class="g2">
-      <div class="card">
-        <div class="card-title">Quick Actions</div>
-        <div class="row">
-          <button class="btn-gold" onclick="switchTab('tasks')">&#128293; Tasks</button>
-          <button class="btn-green" onclick="switchTab('orders')">&#129534; Write Invoice</button>
-          <button class="btn-blue" onclick="switchTab('accounts')">&#128101; Add Account</button>
-        </div>
-        <div class="spacer"></div>
-        <div style="display:flex;gap:10px;align-items:center">
-          <div class="field-label" style="white-space:nowrap">Quick Calc $</div>
-          <input class="calc-input" type="number" id="calcIn" placeholder="sale amount" oninput="document.getElementById('calcOut').textContent='&#8594; $'+(parseFloat(this.value||0)*0.07).toFixed(2)" style="width:140px;margin:0"/>
-          <div class="calc-result" id="calcOut">&#8594; $0.00</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Most Recent Order</div>
-        ${S.orders[0]?`
-          <div><strong>${esc(S.orders[0].invoiceNumber)}</strong></div>
-          <div class="muted">${esc(S.orders[0].customerName)}</div>
-          <div class="muted">Date: ${S.orders[0].orderDate}${S.orders[0].deliveryDate?' &middot; Delivered: '+S.orders[0].deliveryDate:''}</div>
-          <div style="font-family:var(--mono);font-size:22px;color:var(--gold);margin-top:6px">${currency(S.orders[0].total)}</div>
-          <div style="font-size:12px;color:var(--green)">Commission: ${currency(S.orders[0].commission)}</div>
-          <div class="row" style="margin-top:10px">
-            <button class="btn-sm btn-blue" onclick="printCustomerPdfById('${S.orders[0].id}')">Customer PDF</button>
-            <button class="btn-sm btn-gold" onclick="printFulfillmentPdfById('${S.orders[0].id}')">Phoebe PDF</button>
-          </div>`:`<div class="muted">No saved orders yet.</div>`}
-      </div>
-    </div>
-
-    <div class="g2">
-      <div class="card">
-        <div class="card-title">Follow Ups Due Now</div>
-        <div class="tbl-wrap"><table><thead><tr><th>Account</th><th>Status</th><th>Follow-Up Date</th><th>Contact</th></tr></thead>
-        <tbody>${followRows||`<tr><td colspan="4" class="muted">Nothing due today.</td></tr>`}</tbody></table></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Reorder Reminders Due</div>
-        <div class="tbl-wrap"><table><thead><tr><th>Customer</th><th>Invoice</th><th>Reorder Date</th><th>Total</th></tr></thead>
-        <tbody>${reorderRows||`<tr><td colspan="4" class="muted">No reorder reminders due.</td></tr>`}</tbody></table></div>
-      </div>
-    </div>
-  `;
+function addTask() {
+  const name = document.getElementById('addName').value.trim();
+  const action = document.getElementById('addAction').value.trim();
+  if (!name) return;
+  tasks.push({
+    id: nextId++,
+    name,
+    action: action || 'Follow up',
+    phone: document.getElementById('addPhone').value.trim(),
+    addr: document.getElementById('addAddr').value.trim(),
+    priority: document.getElementById('addPriority').value,
+    tag: document.getElementById('addTag').value,
+    done: false,
+    created: Date.now()
+  });
+  ['addName','addAction','addPhone','addAddr'].forEach(id => document.getElementById(id).value = '');
+  save(); render();
 }
 
-function updateBestWeek(){ const v=prompt('Enter your best week commission ($):'); if(v!==null&&!isNaN(parseFloat(v))){localStorage.setItem(BEST_WEEK_KEY,parseFloat(v));renderDashboard();} }
-function updateTotalEarned(){ const v=prompt('Enter total commission earned to date ($):'); if(v!==null&&!isNaN(parseFloat(v))){localStorage.setItem(TOTAL_EARNED_KEY,parseFloat(v));renderDashboard();} }
-function updateWeekEarnings(){ const v=prompt('Enter total commission earned so far this week ($):'); if(v!==null&&!isNaN(parseFloat(v))){localStorage.setItem(WEEK_KEY,parseFloat(v));renderDashboard();} }
+function toggleDone(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  t.done = !t.done;
+  t.doneAt = t.done ? Date.now() : null;
+  save(); render();
+}
 
+function deleteTask(id) {
+  if (!confirm('Delete this contact?')) return;
+  tasks = tasks.filter(t => t.id !== id);
+  save(); render();
+}
 
-// ═══════════════════════════════════════════════════════════
-// RENDER TASKS — MODIFIED: adds timestamp display
-// ═══════════════════════════════════════════════════════════
-const PORD={fire:0,soon:1,pipeline:2,cold:3};
-const TAG_LABELS={call:'&#128222; Call',visit:'&#128664; Walk In',email:'&#9993;&#65039; Email',followup:'&#128260; Follow Up'};
+function promote(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  const order = ['cold','pipeline','soon','fire'];
+  const idx = order.indexOf(t.priority);
+  if (idx < order.length - 1) t.priority = order[idx + 1];
+  save(); render();
+}
 
-function renderTasks(){
-  const f=ui.taskFilter;
-  let visible=S.tasks.filter(t=>{
-    if(f==='all') return !t.done;
-    if(f==='done') return t.done;
-    if(['fire','soon','pipeline','cold'].includes(f)) return t.priority===f&&!t.done;
-    if(['call','visit','email','followup'].includes(f)) return t.tag===f&&!t.done;
+const priorityOrder = {fire:0, soon:1, pipeline:2, cold:3};
+const tagLabels = {call:'📞 Call', visit:'🚗 Visit', email:'✉️ Email', followup:'🔁 Follow Up'};
+const tagClass = {call:'tag-call', visit:'tag-visit', email:'tag-email', followup:'tag-followup'};
+
+function render() {
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+
+  let visible = tasks.filter(t => {
+    const matchSearch = !search ||
+      t.name.toLowerCase().includes(search) ||
+      (t.phone||'').includes(search) ||
+      (t.action||'').toLowerCase().includes(search) ||
+      (t.addr||'').toLowerCase().includes(search);
+    if (!matchSearch) return false;
+    if (curFilter === 'all') return !t.done;
+    if (curFilter === 'done') return t.done;
+    if (['fire','soon','pipeline','cold'].includes(curFilter)) return t.priority === curFilter && !t.done;
+    if (['call','visit','email','followup'].includes(curFilter)) return t.tag === curFilter && !t.done;
     return true;
   });
-  visible.sort((a,b)=>PORD[a.priority]-PORD[b.priority]);
 
-  const open=S.tasks.filter(t=>!t.done);
-  const groups={fire:[],soon:[],pipeline:[],cold:[],done:[]};
-  visible.forEach(t=>{ if(t.done) groups.done.push(t); else groups[t.priority].push(t); });
+  visible.sort((a,b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 
-  const gMeta={
-    fire:{label:'&#128293; ON FIRE — DO TODAY',cls:'fire'},
-    soon:{label:'&#9889; THIS WEEK',cls:'soon'},
-    pipeline:{label:'&#128200; WARM PIPELINE',cls:'pipeline'},
-    cold:{label:'&#10052;&#65039; COLD — BUILD LIST',cls:'cold'},
-    done:{label:'&#10003; COMPLETED',cls:'pipeline'},
+  const open = tasks.filter(t => !t.done);
+  const doneToday = tasks.filter(t => t.done && t.doneAt && (Date.now() - t.doneAt < 86400000));
+  document.getElementById('totalTasks').textContent = open.length;
+  document.getElementById('fireTasks').textContent = open.filter(t=>t.priority==='fire').length;
+  document.getElementById('soonTasks').textContent = open.filter(t=>t.priority==='soon').length;
+  document.getElementById('doneTasks').textContent = doneToday.length;
+  document.getElementById('hOpenCount').textContent = open.length;
+  document.getElementById('hFireCount').textContent = open.filter(t=>t.priority==='fire').length;
+
+  const weekEarned = parseFloat(localStorage.getItem(WEEK_KEY) || '0');
+  const pct = Math.min(100, (weekEarned / 3500) * 100);
+  document.getElementById('weekEarned').textContent = '$' + weekEarned.toFixed(0) + ' earned';
+  document.getElementById('goalFill').style.width = pct + '%';
+  const gap = 3500 - weekEarned;
+  document.getElementById('goalGap').textContent = gap > 0 ? '$' + gap.toFixed(0) + ' to go' : '✅ GOAL HIT!';
+  document.getElementById('goalPct').textContent = pct.toFixed(0) + '%';
+  document.getElementById('hWeekGap').textContent = gap > 0 ? '$' + gap.toFixed(0) + ' to go' : '✅ HIT!';
+
+  document.getElementById('taskCount').textContent = visible.length + ' accounts';
+
+  if (visible.length === 0) {
+    document.getElementById('taskList').innerHTML = '<div class="empty">No contacts match. Try a different filter or search.</div>';
+    return;
+  }
+
+  const groups = {fire:[], soon:[], pipeline:[], cold:[], done:[]};
+  visible.forEach(t => {
+    if (t.done) groups.done.push(t);
+    else groups[t.priority] ? groups[t.priority].push(t) : groups.cold.push(t);
+  });
+
+  const groupMeta = {
+    fire: {label:'🔥 ON FIRE — DO TODAY', cls:'fire'},
+    soon: {label:'⚡ THIS WEEK', cls:'soon'},
+    pipeline: {label:'📈 WARM PIPELINE', cls:'pipeline'},
+    cold: {label:'❄️ COLD — BUILD THE LIST', cls:'cold'},
+    done: {label:'✅ COMPLETED TODAY', cls:'pipeline'},
   };
 
-  let taskHtml='';
-  ['fire','soon','pipeline','cold','done'].forEach(g=>{
-    if(!groups[g].length) return;
-    const m=gMeta[g];
-    taskHtml+=`<div><span class="group-label gl-${g}">${m.label}</span>`;
-    groups[g].forEach(t=>{
-      // CHANGE 1: show creation timestamp
-      const tsHtml=t.created?`<div class="task-ts">${fmtCreated(t.created)}</div>`:'';
-      taskHtml+=`<div class="task${t.done?' done':''}">
-        <div class="t-dot t-${t.done?'cold':t.priority}"></div>
+  let html = '';
+  ['fire','soon','pipeline','cold','done'].forEach(g => {
+    if (!groups[g] || !groups[g].length) return;
+    const meta = groupMeta[g];
+    html += `<div class="task-group"><span class="group-label ${meta.cls}">${meta.label} (${groups[g].length})</span>`;
+    groups[g].forEach(t => {
+      html += `<div class="task${t.done?' done':''}">
+        <div class="task-priority p-${t.done?'cold':t.priority}"></div>
         <div class="task-body">
-          <div class="task-name">${esc(t.name)} <span class="task-tag">${TAG_LABELS[t.tag]||t.tag}</span></div>
-          <div class="task-action">${esc(t.action)}</div>
-          ${t.phone?`<div style="margin-top:4px"><span class="task-phone">${esc(t.phone)}</span></div>`:''}
-          ${tsHtml}
+          <div class="task-name">${t.name} <span class="tag-pill ${tagClass[t.tag]||'tag-call'}">${tagLabels[t.tag]||'📞'}</span></div>
+          <div class="task-action">${t.action}</div>
+          ${t.phone ? `<div><span class="task-phone">${t.phone}</span></div>` : ''}
+          ${t.addr ? `<div class="task-addr">${t.addr}</div>` : ''}
         </div>
-        <div class="task-ctrls">
+        <div class="task-controls">
           ${t.done
-            ?`<button class="btn-sm" onclick="toggleTask(${t.id})">&#8629; Undo</button>`
-            :`<button class="btn-sm btn-green" onclick="toggleTask(${t.id})">&#10003; Done</button>`}
-          <button class="btn-sm btn-red" onclick="deleteTask(${t.id})">&#10005;</button>
+            ? `<button class="tc-btn undo-btn" onclick="toggleDone(${t.id})">↩ Undo</button>`
+            : `<button class="tc-btn done-btn" onclick="toggleDone(${t.id})">✓ Done</button>`}
+          ${!t.done && t.priority !== 'fire' ? `<button class="tc-btn promote-btn" onclick="promote(${t.id})">↑ Up</button>` : ''}
+          <button class="tc-btn del-btn" onclick="deleteTask(${t.id})">✕</button>
         </div>
       </div>`;
     });
-    taskHtml+='</div>';
+    html += '</div>';
   });
 
-  const ftags=[
-    {f:'all',l:`All (${open.length})`},{f:'fire',l:`&#128293; Fire (${open.filter(t=>t.priority==='fire').length})`},
-    {f:'soon',l:`&#9889; Soon (${open.filter(t=>t.priority==='soon').length})`},
-    {f:'pipeline',l:`&#128200; Pipeline`},{f:'cold',l:`&#10052;&#65039; Cold`},
-    {f:'call',l:'&#128222; Calls'},{f:'visit',l:'&#128664; Walk-ins'},
-    {f:'email',l:'&#9993;&#65039; Emails'},{f:'followup',l:'&#128260; Follow-ups'},{f:'done',l:'&#10003; Done'},
-  ].map(x=>`<button class="btn btn-sm ${ui.taskFilter===x.f?'btn-gold':''}" onclick="setTaskFilter('${x.f}')">${x.l}</button>`).join('');
-
-  document.getElementById('tasks').innerHTML=`
-    <div class="g2">
-      <div class="card">
-        <div class="card-title">Add Task</div>
-        <div class="field-label">Account (pick existing or type new)</div>
-        <select id="tAcctSelect" onchange="taskAcctSelected(this.value)" style="margin-bottom:6px">
-          <option value="">— New / Custom —</option>
-          ${[...S.accounts].sort((a,b)=>a.shopName.localeCompare(b.shopName)).map(a=>`<option value="${a.id}">${esc(a.shopName)}${a.contactName?' — '+esc(a.contactName):''}${a.phone?' &middot; '+esc(a.phone):''}</option>`).join('')}
-        </select>
-        <div class="field-label">Shop / Account Name</div>
-        <input id="tName" placeholder="Account / shop name" style="margin-bottom:6px"/>
-        <div class="field-label">Action</div>
-        <select id="tAction" style="margin-bottom:6px">
-          <option value="Follow up call">&#128222; Follow Up Call</option>
-          <option value="Walk-in visit">&#128664; Walk-In Visit</option>
-          <option value="Reorder check — time for another order?">&#128260; Reorder Check</option>
-          <option value="Email price list">&#9993;&#65039; Email Price List</option>
-          <option value="Close the sale">&#129309; Close The Sale</option>
-          <option value="Deliver quote / price sheet">&#128203; Deliver Quote</option>
-          <option value="Check in — how is the oil holding up?">&#128172; Check In</option>
-          <option value="Schedule delivery">&#128666; Schedule Delivery</option>
-          <option value="Cold walk-in">&#128694; Cold Walk-In</option>
-          <option value="Call back — left message">&#128242; Call Back (Left Message)</option>
-          <option value="Convert from current supplier">&#128260; Convert From Supplier</option>
-          <option value="Upsell — pitch additional products">&#11014;&#65039; Upsell</option>
-          <option value="custom">&#9999;&#65039; Custom…</option>
-        </select>
-        <input id="tActionCustom" placeholder="Type custom action…" style="display:none;margin-bottom:6px"/>
-        <div class="field-label">Notes</div>
-        <textarea id="tNotes" placeholder="Any notes, objections, details…" style="min-height:60px;margin-bottom:6px"></textarea>
-        <div class="field-label">Phone</div>
-        <input id="tPhone" placeholder="Phone (auto-fills from account)" style="margin-bottom:6px"/>
-        <div class="g2" style="margin-bottom:8px">
-          <div>
-            <div class="field-label">Priority</div>
-            <select id="tPriority">
-              <option value="fire">&#128293; On Fire</option>
-              <option value="soon">&#9889; This Week</option>
-              <option value="pipeline" selected>&#128200; Pipeline</option>
-              <option value="cold">&#10052;&#65039; Cold</option>
-            </select>
-          </div>
-          <div>
-            <div class="field-label">Type</div>
-            <select id="tTag">
-              <option value="call">&#128222; Call</option>
-              <option value="visit">&#128664; Walk In</option>
-              <option value="email">&#9993;&#65039; Email</option>
-              <option value="followup">&#128260; Follow Up</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn-gold" onclick="addTask()" style="width:100%">+ Add Task</button>
-      </div>
-      <div class="card">
-        <div class="card-title">Weekly Goal</div>
-        <div class="goal-track"><div class="goal-fill" id="tGoalFill" style="width:${Math.min(100,(parseFloat(localStorage.getItem(WEEK_KEY)||0)/3500)*100)}%"></div></div>
-        <div class="goal-nums">
-          <span class="goal-earned" onclick="updateWeekEarnings()" style="cursor:pointer">$${parseFloat(localStorage.getItem(WEEK_KEY)||0).toFixed(0)} earned this week &#9998;</span>
-          <span class="goal-target">$3,500</span>
-        </div>
-        <div class="goal-gap" style="margin-top:6px">${(3500-parseFloat(localStorage.getItem(WEEK_KEY)||0))>0?'$'+(3500-parseFloat(localStorage.getItem(WEEK_KEY)||0)).toFixed(0)+' to go':'&#10003; GOAL HIT!'}</div>
-      </div>
-    </div>
-    <div class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:14px">${ftags}</div>
-    <div id="taskList">${taskHtml||'<div style="text-align:center;padding:40px;color:var(--muted);font-family:var(--mono)">No tasks. Add one above.</div>'}</div>
-  `;
+  document.getElementById('taskList').innerHTML = html;
 }
 
-function setTaskFilter(f){ui.taskFilter=f;renderTasks();}
-function bindTaskFormEvents(){
-  const sel=document.getElementById('tAction');
-  if(!sel) return;
-  sel.addEventListener('change',function(){
-    const c=document.getElementById('tActionCustom');
-    if(c) c.style.display=this.value==='custom'?'block':'none';
-  });
-  const tagMap={'Follow up call':'call','Walk-in visit':'visit','Reorder check — time for another order?':'followup','Email price list':'email','Close the sale':'call','Deliver quote / price sheet':'visit','Check in — how is the oil holding up?':'call','Schedule delivery':'followup','Cold walk-in':'visit','Call back — left message':'call','Convert from current supplier':'visit','Upsell — pitch additional products':'call','custom':'call'};
-  sel.addEventListener('change',function(){ const tag=tagMap[this.value]; const t=document.getElementById('tTag'); if(t&&tag) t.value=tag; });
-}
-function toggleTask(id){ const t=S.tasks.find(x=>x.id===id); if(t){t.done=!t.done;t.doneAt=t.done?Date.now():null;} saveState();renderTasks(); }
-function deleteTask(id){ if(!confirm('Delete this task?'))return; S.tasks=S.tasks.filter(t=>t.id!==id); saveState();renderTasks(); }
-function taskAcctSelected(id){
-  if(!id) return;
-  const a=S.accounts.find(x=>x.id===id);
-  if(!a) return;
-  document.getElementById('tName').value=a.shopName;
-  document.getElementById('tPhone').value=a.phone||'';
-  if(a.notes) document.getElementById('tNotes').value=a.notes;
-}
-function addTask(){
-  const name=document.getElementById('tName').value.trim();
-  if(!name){document.getElementById('tName').focus();return;}
-  const actionSel=document.getElementById('tAction').value;
-  const actionCustom=document.getElementById('tActionCustom').value.trim();
-  const action=actionSel==='custom'?(actionCustom||'Follow up'):actionSel;
-  const notes=document.getElementById('tNotes').value.trim();
-  const displayAction=notes?action+' · '+notes:action;
-  S.tasks.unshift({
-    id:ui.taskNextId++,name,
-    action:displayAction,
-    phone:document.getElementById('tPhone').value.trim(),
-    priority:document.getElementById('tPriority').value,
-    tag:document.getElementById('tTag').value,
-    done:false,
-    created:Date.now() // timestamp recorded on creation
-  });
-  document.getElementById('tName').value='';
-  document.getElementById('tNotes').value='';
-  document.getElementById('tPhone').value='';
-  document.getElementById('tAcctSelect').value='';
-  document.getElementById('tActionCustom').style.display='none';
-  saveState();renderTasks();
-}
-
-
-// ═══════════════════════════════════════════════════════════
-// RENDER ACCOUNTS — MODIFIED: Prospects vs Customers tabs
-// ═══════════════════════════════════════════════════════════
-function renderAccounts(){
-  const view=ui.accountView||'prospects';
-  const PROSPECT_ST=['lead','follow_up'];
-  const CUSTOMER_ST=['ordered','delivered','customer'];
-
-  const q=ui.accountSearch.trim().toLowerCase();
-  const viewFiltered=S.accounts.filter(a=>view==='prospects'?PROSPECT_ST.includes(a.status):CUSTOMER_ST.includes(a.status));
-  const filtered=viewFiltered.filter(a=>[a.shopName,a.contactName,a.phone,a.email,a.notes,a.tags].join(' ').toLowerCase().includes(q));
-
-  const prospectCount=S.accounts.filter(a=>PROSPECT_ST.includes(a.status)).length;
-  const customerCount=S.accounts.filter(a=>CUSTOMER_ST.includes(a.status)).length;
-
-  const rows=filtered.map(a=>`
-    <tr>
-      <td><strong>${esc(a.shopName)}</strong></td>
-      <td>${statusTag(a.status)}</td>
-      <td>${esc(a.contactName||'')}</td>
-      <td style="font-family:var(--mono);font-size:12px">${esc(a.phone||'')}</td>
-      <td style="font-size:12px">${a.nextFollowUpDate||''}</td>
-      <td style="font-size:12px">${a.nextReorderFollowUpDate||''}</td>
-      <td>
-        <button class="btn-sm" onclick="editAccount('${a.id}')">Edit</button>
-        <button class="btn-sm btn-green" onclick="startOrderFromAccount('${a.id}')">Order</button>
-        <button class="btn-sm btn-red" onclick="deleteAccount('${a.id}')">&#10005;</button>
-      </td>
-    </tr>`).join('');
-
-  const a=ui.accountDraft;
-  document.getElementById('accounts').innerHTML=`
-    <div class="g2">
-      <div class="card">
-        <div class="card-title">${a.id?'Edit Account':'New Account'}</div>
-        <input value="${attr(a.shopName)}" placeholder="Shop / Company Name *" oninput="setAF('shopName',this.value)"/>
-        <div class="g2">
-          <input value="${attr(a.contactName)}" placeholder="Contact Name" oninput="setAF('contactName',this.value)"/>
-          <select onchange="setAF('status',this.value)">
-            ${['lead','follow_up','customer','ordered','delivered','lost'].map(s=>`<option value="${s}" ${a.status===s?'selected':''}>${s.replaceAll('_',' ')}</option>`).join('')}
-          </select>
-        </div>
-        <div class="g2">
-          <input value="${attr(a.phone)}" placeholder="Phone" oninput="setAF('phone',this.value)"/>
-          <input value="${attr(a.email)}" placeholder="Email" oninput="setAF('email',this.value)"/>
-        </div>
-        <input value="${attr(a.address)}" placeholder="Address" oninput="setAF('address',this.value)"/>
-        <div class="g3">
-          <div><div class="field-label">First Touch</div><input type="date" value="${attr(a.firstTouchDate)}" oninput="setAF('firstTouchDate',this.value)"/></div>
-          <div><div class="field-label">Next Follow-Up</div><input type="date" value="${attr(a.nextFollowUpDate)}" oninput="setAF('nextFollowUpDate',this.value)"/></div>
-          <div><div class="field-label">Reorder Reminder</div><input type="date" value="${attr(a.nextReorderFollowUpDate)}" oninput="setAF('nextReorderFollowUpDate',this.value)"/></div>
-        </div>
-        <div class="g2">
-          <div><div class="field-label">Last Order</div><input type="date" value="${attr(a.lastOrderDate)}" oninput="setAF('lastOrderDate',this.value)"/></div>
-          <div><div class="field-label">Last Delivery</div><input type="date" value="${attr(a.lastDeliveryDate)}" oninput="setAF('lastDeliveryDate',this.value)"/></div>
-        </div>
-        <input value="${attr(a.tags)}" placeholder="Tags (comma separated)" oninput="setAF('tags',this.value)"/>
-        <textarea placeholder="Notes / objections / touchpoints" oninput="setAF('notes',this.value)">${esc(a.notes)}</textarea>
-        <div class="row">
-          <button class="btn-green" onclick="saveAccount()">Save Account</button>
-          <button onclick="ui.accountDraft=newAccountDraft();renderAccounts()">Clear</button>
-          <button class="btn-blue" onclick="startOrderFromDraftAccount()">Write Order</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">All Accounts</div>
-
-        <div class="view-tabs">
-          <button class="btn btn-sm ${view==='prospects'?'btn-gold':''}" onclick="ui.accountView='prospects';renderAccounts()">
-            &#128268; Prospects (${prospectCount})
-          </button>
-          <button class="btn btn-sm ${view==='customers'?'btn-green':''}" onclick="ui.accountView='customers';renderAccounts()">
-            &#10003; Customers (${customerCount})
-          </button>
-        </div>
-
-        <input value="${attr(ui.accountSearch)}" placeholder="Search ${view}…" oninput="ui.accountSearch=this.value;renderAccounts()" style="max-width:300px"/>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>Account</th><th>Status</th><th>Contact</th><th>Phone</th><th>Follow-Up</th><th>Reorder</th><th>Actions</th></tr></thead>
-            <tbody>${rows||`<tr><td colspan="7" class="muted">No ${view} found.</td></tr>`}</tbody>
-          </table>
-        </div>
-      </div>
-    </div>`;
-}
-
-function setAF(k,v){ui.accountDraft[k]=v;}
-function saveAccount(){
-  const a=ui.accountDraft;
-  if(!a.shopName.trim())return alert('Shop name required.');
-  a.id=a.id||uid();
-  const idx=S.accounts.findIndex(x=>x.id===a.id);
-  if(idx>=0) S.accounts[idx]=clone(a); else S.accounts.unshift(clone(a));
-  saveState();ui.accountDraft=newAccountDraft();renderAccounts();
-}
-function editAccount(id){const a=S.accounts.find(x=>x.id===id);if(a){ui.accountDraft=clone(a);renderAccounts();}}
-function deleteAccount(id){if(!confirm('Delete account?'))return;S.accounts=S.accounts.filter(x=>x.id!==id);saveState();renderAccounts();}
-function startOrderFromAccount(id){const a=S.accounts.find(x=>x.id===id);if(!a)return;ui.orderDraft=newOrderDraft();ui.orderDraft.accountId=a.id;ui.orderDraft.customerName=a.shopName;ui.orderDraft.contactName=a.contactName||'';ui.orderDraft.phone=a.phone||'';ui.orderDraft.email=a.email||'';ui.orderDraft.address=a.address||'';switchTab('orders');}
-function startOrderFromDraftAccount(){const a=ui.accountDraft;ui.orderDraft=newOrderDraft();ui.orderDraft.customerName=a.shopName;ui.orderDraft.contactName=a.contactName||'';ui.orderDraft.phone=a.phone||'';ui.orderDraft.email=a.email||'';ui.orderDraft.address=a.address||'';switchTab('orders');}
-
-
-// ═══════════════════════════════════════════════════════════
-// RENDER PRODUCTS (unchanged)
-// ═══════════════════════════════════════════════════════════
-function renderProducts(){
-  const q=ui.productSearch.trim().toLowerCase();
-  const filtered=S.products.filter(p=>[p.name,p.category,p.sku,p.notes,p.unit].join(' ').toLowerCase().includes(q));
-  const rows=filtered.map(p=>`
-    <tr>
-      <td><strong>${esc(p.name)}</strong></td>
-      <td>${esc(p.category||'')}</td>
-      <td>${esc(p.unit||'')}</td>
-      <td style="font-family:var(--mono);color:var(--green)">${currency(p.price)}</td>
-      <td style="color:var(--gold);font-family:var(--mono);font-size:11px">${currency(p.price*0.07)}</td>
-      <td style="font-size:11px;color:var(--muted2)">${esc(p.notes||'')}</td>
-      <td>
-        <button class="btn-sm" onclick="editProduct('${p.id}')">Edit</button>
-        <button class="btn-sm btn-red" onclick="deleteProduct('${p.id}')">&#10005;</button>
-      </td>
-    </tr>`).join('');
-
-  const p=ui.productDraft;
-  document.getElementById('products').innerHTML=`
-    <div class="g2">
-      <div class="card">
-        <div class="card-title">${p.id?'Edit Product':'Add Product'}</div>
-        <input value="${attr(p.name)}" placeholder="Product name *" oninput="setPF('name',this.value)"/>
-        <div class="g2">
-          <input value="${attr(p.category)}" placeholder="Category" oninput="setPF('category',this.value)"/>
-          <input value="${attr(p.sku)}" placeholder="SKU" oninput="setPF('sku',this.value)"/>
-        </div>
-        <div class="g2">
-          <input value="${attr(p.unit)}" placeholder="Unit (Drum, Case…)" oninput="setPF('unit',this.value)"/>
-          <input type="number" step="0.01" value="${attr(p.price)}" placeholder="Price" oninput="setPF('price',this.value)"/>
-        </div>
-        <textarea placeholder="Notes" oninput="setPF('notes',this.value)">${esc(p.notes||'')}</textarea>
-        <div class="row">
-          <button class="btn-green" onclick="saveProduct()">Save Product</button>
-          <button onclick="ui.productDraft=newProductDraft();renderProducts()">Clear</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Product Catalog (${filtered.length})</div>
-        <input value="${attr(ui.productSearch)}" placeholder="Search products…" oninput="ui.productSearch=this.value;renderProducts()" style="max-width:300px"/>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>Name</th><th>Category</th><th>Unit</th><th>Price</th><th>Your 7%</th><th>Notes</th><th></th></tr></thead>
-            <tbody>${rows||`<tr><td colspan="7" class="muted">No products.</td></tr>`}</tbody>
-          </table>
-        </div>
-      </div>
-    </div>`;
-}
-function setPF(k,v){ui.productDraft[k]=v;}
-function saveProduct(){
-  const p=ui.productDraft;
-  if(!p.name.trim())return alert('Product name required.');
-  p.id=p.id||uid(); p.price=n(p.price); p.active=true;
-  const idx=S.products.findIndex(x=>x.id===p.id);
-  if(idx>=0) S.products[idx]=clone(p); else S.products.unshift(clone(p));
-  saveState();ui.productDraft=newProductDraft();renderProducts();
-}
-function editProduct(id){const p=S.products.find(x=>x.id===id);if(p){ui.productDraft=clone(p);renderProducts();}}
-function deleteProduct(id){if(!confirm('Delete product?'))return;S.products=S.products.filter(x=>x.id!==id);saveState();renderProducts();}
-
-
-// ═══════════════════════════════════════════════════════════
-// ORDERS / INVOICES (unchanged)
-// ═══════════════════════════════════════════════════════════
-function buildOrderPreview(o){
-  const t=orderTotals(o);
-  const lines=[S.settings.companyName,'Invoice #: '+(o.invoiceNumber||''),'Date: '+(o.orderDate||''),''];
-  lines.push('Bill To: '+(o.customerName||''));
-  if(o.contactName) lines.push(o.contactName);
-  if(o.phone) lines.push(o.phone);
-  if(o.address) lines.push(o.address);
-  lines.push('');
-  (o.items||[]).forEach(i=>{
-    const lt=n(i.quantity)*n(i.unitPrice);
-    lines.push(`${i.description||'Item'} | ${i.quantity} ${i.unit||''} @ ${currency(i.unitPrice)} = ${currency(lt)}`);
-  });
-  lines.push('');
-  lines.push('Subtotal: '+currency(t.subtotal));
-  if(n(o.deliveryCharge)) lines.push('Delivery: '+currency(o.deliveryCharge));
-  if(n(o.drumDeposit)) lines.push('Drum Deposit: '+currency(o.drumDeposit));
-  lines.push('TOTAL: '+currency(t.total));
-  lines.push('Commission ('+S.settings.commissionRate+'%): '+currency(t.commission));
-  return lines.join('\n');
-}
-
-function refreshOrderLive(){
-  const o=ui.orderDraft, t=orderTotals(o);
-  const p=document.getElementById('orderPreview');
-  if(p) p.textContent=buildOrderPreview(o);
-  [['ot_sub',currency(t.subtotal)],['ot_del',currency(t.delivery)],['ot_dep',currency(t.deposit)],
-   ['ot_tax',currency(t.tax)],['ot_tot',currency(t.total)],['ot_cb',currency(t.commissionBase)],['ot_comm',currency(t.commission)]
-  ].forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=v;});
-  (o.items||[]).forEach(item=>{
-    const el=document.getElementById('lt_'+item.id);
-    if(el) el.value=currency(n(item.quantity)*n(item.unitPrice));
-  });
-}
-
-function renderOrders(){
-  const o=ui.orderDraft, t=orderTotals(o);
-  const acctOpts=['<option value="">Select account (or type manually below)</option>']
-    .concat(S.accounts.map(a=>`<option value="${a.id}" ${o.accountId===a.id?'selected':''}>${esc(a.shopName)}${a.contactName?' — '+esc(a.contactName):''}</option>`)).join('');
-  function prodOpts(selId=''){
-    return ['<option value="">Pick product…</option>']
-      .concat(S.products.filter(p=>p.active!==false).map(p=>`<option value="${p.id}" ${selId===p.id?'selected':''}>${esc(p.name)} — ${currency(p.price)}/${esc(p.unit||'')}</option>`)).join('');
-  }
-  const lineItemsHtml=(o.items||[]).map(item=>`
-    <div class="line-item">
-      <div class="g2">
-        <select onchange="setOLP('${item.id}',this.value)">${prodOpts(item.productId)}</select>
-        <input value="${attr(item.description)}" placeholder="Description" oninput="setOLF('${item.id}','description',this.value)"/>
-      </div>
-      <div class="g4">
-        <input type="number" step="0.01" value="${attr(item.quantity)}" placeholder="Qty" oninput="setOLF('${item.id}','quantity',this.value)"/>
-        <input value="${attr(item.unit)}" placeholder="Unit" oninput="setOLF('${item.id}','unit',this.value)"/>
-        <input type="number" step="0.01" value="${attr(item.unitPrice)}" placeholder="Unit Price" oninput="setOLF('${item.id}','unitPrice',this.value)"/>
-        <input id="lt_${item.id}" disabled value="${currency(n(item.quantity)*n(item.unitPrice))}"/>
-      </div>
-      <button class="btn-sm btn-red" onclick="removeOL('${item.id}')">Remove Line</button>
-    </div>`).join('');
-
-  const savedRows=S.orders.filter(o=>{
-    const q=ui.orderSearch.trim().toLowerCase();
-    return !q||[o.invoiceNumber,o.customerName,o.orderDate].join(' ').toLowerCase().includes(q);
-  }).map(o=>`
-    <tr>
-      <td style="font-family:var(--mono)">${esc(o.invoiceNumber)}</td>
-      <td><strong>${esc(o.customerName)}</strong></td>
-      <td style="font-size:12px">${o.orderDate}</td>
-      <td style="font-size:12px">${o.deliveryDate||'—'}</td>
-      <td style="font-size:12px;color:${o.reorderFollowUpDate&&isTodayOrPast(o.reorderFollowUpDate)?'var(--red)':'inherit'}">${o.reorderFollowUpDate||'—'}</td>
-      <td style="font-family:var(--mono);color:var(--green)">${currency(o.total)}</td>
-      <td style="font-family:var(--mono);color:var(--gold)">${currency(o.commission)}</td>
-      <td>
-        <button class="btn-sm" onclick="loadOrder('${o.id}')">Load</button>
-        <button class="btn-sm btn-blue" onclick="printCustomerPdfById('${o.id}')">Cust PDF</button>
-        <button class="btn-sm btn-gold" onclick="printFulfillmentPdfById('${o.id}')">Phoebe PDF</button>
-        <button class="btn-sm btn-red" onclick="deleteOrder('${o.id}')">&#10005;</button>
-      </td>
-    </tr>`).join('');
-
-  document.getElementById('orders').innerHTML=`
-    <div class="g2">
-      <div class="card">
-        <div class="card-title">Invoice Builder</div>
-        <select onchange="loadAcctIntoOrder(this.value)">${acctOpts}</select>
-        <div class="g2">
-          <input value="${attr(o.customerName)}" placeholder="Customer / Shop Name *" oninput="setOF('customerName',this.value)"/>
-          <input value="${attr(o.contactName)}" placeholder="Contact Name" oninput="setOF('contactName',this.value)"/>
-        </div>
-        <div class="g2">
-          <input value="${attr(o.phone)}" placeholder="Phone" oninput="setOF('phone',this.value)"/>
-          <input value="${attr(o.email)}" placeholder="Email" oninput="setOF('email',this.value)"/>
-        </div>
-        <input value="${attr(o.address)}" placeholder="Address" oninput="setOF('address',this.value)"/>
-        <div class="g4">
-          <div><div class="field-label">Invoice #</div><input disabled value="${attr(o.invoiceNumber)}"/></div>
-          <div><div class="field-label">Order Date</div><input type="date" value="${attr(o.orderDate)}" oninput="setOF('orderDate',this.value)"/></div>
-          <div><div class="field-label">Expected Delivery</div><input type="date" value="${attr(o.expectedDeliveryDate)}" oninput="setOF('expectedDeliveryDate',this.value)"/></div>
-          <div><div class="field-label">Delivered Date</div><input type="date" value="${attr(o.deliveryDate)}" oninput="setOF('deliveryDate',this.value)"/></div>
-        </div>
-        <div class="g3">
-          <div><div class="field-label">Reorder Follow-Up</div><input type="date" value="${attr(o.reorderFollowUpDate)}" oninput="setOF('reorderFollowUpDate',this.value)"/></div>
-          <div><div class="field-label">Status</div>
-            <select onchange="setOF('status',this.value)">
-              ${['ordered','delivered','follow_up','customer'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s.replaceAll('_',' ')}</option>`).join('')}
-            </select>
-          </div>
-          <div><div class="field-label">Payment Terms</div><input value="${attr(o.paymentTerms)}" oninput="setOF('paymentTerms',this.value)"/></div>
-        </div>
-        <div class="divider"></div>
-        <div class="card-title" style="font-size:15px">Line Items</div>
-        ${lineItemsHtml}
-        <button class="btn-blue" onclick="addOL()">+ Add Line Item</button>
-        <div class="divider"></div>
-        <div class="g4">
-          <div><div class="field-label">Delivery Charge</div><input type="number" step="0.01" value="${attr(o.deliveryCharge)}" oninput="setOF('deliveryCharge',this.value)"/></div>
-          <div><div class="field-label">Drum Deposit</div><input type="number" step="0.01" value="${attr(o.drumDeposit)}" oninput="setOF('drumDeposit',this.value)"/></div>
-          <div><div class="field-label">Tax %</div><input type="number" step="0.01" value="${attr(o.taxRate)}" oninput="setOF('taxRate',this.value)"/></div>
-          <div><div class="field-label">Comm Base Override</div><input type="number" step="0.01" value="${attr(o.totalForCommission)}" oninput="setOF('totalForCommission',this.value)"/></div>
-        </div>
-        <textarea placeholder="Customer note (appears on invoice)" oninput="setOF('notes',this.value)">${esc(o.notes)}</textarea>
-        <textarea placeholder="Internal notes (your reference)" oninput="setOF('internalNotes',this.value)">${esc(o.internalNotes)}</textarea>
-        <textarea placeholder="Fulfillment notes for Phoebe" oninput="setOF('fulfillmentNotes',this.value)">${esc(o.fulfillmentNotes)}</textarea>
-        <div class="totals-block">
-          <div class="total-row"><span>Subtotal</span><strong id="ot_sub">${currency(t.subtotal)}</strong></div>
-          <div class="total-row"><span>Delivery</span><strong id="ot_del">${currency(t.delivery)}</strong></div>
-          <div class="total-row"><span>Drum Deposit</span><strong id="ot_dep">${currency(t.deposit)}</strong></div>
-          <div class="total-row"><span>Tax</span><strong id="ot_tax">${currency(t.tax)}</strong></div>
-          <div class="total-row grand"><span>TOTAL</span><strong id="ot_tot" style="color:var(--gold)">${currency(t.total)}</strong></div>
-          <div class="total-row comm"><span>Commission Base</span><strong id="ot_cb">${currency(t.commissionBase)}</strong></div>
-          <div class="total-row comm"><span>Your 7% Commission</span><strong id="ot_comm">${currency(t.commission)}</strong></div>
-        </div>
-        <div class="spacer"></div>
-        <div class="row">
-          <button class="btn-green" onclick="saveOrder()">&#128190; Save Order</button>
-          <button class="btn-blue" onclick="printCustomerPdf()">&#128196; Customer PDF</button>
-          <button class="btn-gold" onclick="printFulfillmentPdf()">&#128203; Phoebe PDF</button>
-          <button onclick="emailCustomer()">&#9993;&#65039; Email Customer</button>
-          <button onclick="emailPhoebe()">&#128231; Email Phoebe</button>
-          <button onclick="ui.orderDraft=newOrderDraft();renderOrders()">New Order</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Live Preview</div>
-        <div class="preview" id="orderPreview">${esc(buildOrderPreview(o))}</div>
-        <div class="spacer"></div>
-        <div class="card">
-          <div class="card-title" style="font-size:14px">Saved Orders</div>
-          <input value="${attr(ui.orderSearch)}" placeholder="Search orders…" oninput="ui.orderSearch=this.value;renderOrders()" style="max-width:300px"/>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Invoice #</th><th>Customer</th><th>Order Date</th><th>Delivered</th><th>Reorder</th><th>Total</th><th>Comm</th><th>Actions</th></tr></thead>
-              <tbody>${savedRows||`<tr><td colspan="8" class="muted">No saved orders yet.</td></tr>`}</tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>`;
-}
-
-function setOF(k,v){ ui.orderDraft[k]=['deliveryCharge','drumDeposit','taxRate','totalForCommission'].includes(k)?n(v):v; refreshOrderLive(); }
-function setOLF(id,k,v){ const l=ui.orderDraft.items.find(x=>x.id===id); if(l){l[k]=['quantity','unitPrice'].includes(k)?n(v):v; refreshOrderLive();} }
-function setOLP(id,pid){ const l=ui.orderDraft.items.find(x=>x.id===id); const p=getProduct(pid); if(!l||!p) return; l.productId=p.id; l.description=p.name; l.unit=p.unit; l.unitPrice=n(p.price); renderOrders(); }
-function addOL(){ ui.orderDraft.items.push(newLineItem()); renderOrders(); }
-function removeOL(id){ ui.orderDraft.items=ui.orderDraft.items.filter(x=>x.id!==id); renderOrders(); }
-function loadAcctIntoOrder(id){ const a=getAccount(id); if(!a) return; ui.orderDraft.accountId=a.id; ui.orderDraft.customerName=a.shopName; ui.orderDraft.contactName=a.contactName||''; ui.orderDraft.phone=a.phone||''; ui.orderDraft.email=a.email||''; ui.orderDraft.address=a.address||''; renderOrders(); }
-function saveOrder(){
-  const o=clone(ui.orderDraft);
-  if(!o.customerName.trim()) return alert('Customer name required.');
-  if(!(o.items||[]).length) return alert('Add at least one line item.');
-  const t=orderTotals(o);
-  o.id=o.id||uid();
-  o.invoiceNumber=o.invoiceNumber||(S.settings.invoicePrefix+S.settings.nextInvoiceNumber);
-  Object.assign(o,{subtotal:t.subtotal,tax:t.tax,total:t.total,commissionBase:t.commissionBase,commission:t.commission,updatedAt:nowIso()});
-  if(!o.createdAt) o.createdAt=nowIso();
-  const idx=S.orders.findIndex(x=>x.id===o.id);
-  const isNew=idx<0;
-  if(idx>=0) S.orders[idx]=o; else S.orders.unshift(o);
-  if(isNew) S.settings.nextInvoiceNumber=n(S.settings.nextInvoiceNumber)+1;
-  if(o.accountId){ const a=getAccount(o.accountId); if(a){a.status=o.deliveryDate?'delivered':'ordered';a.lastOrderDate=o.orderDate||a.lastOrderDate;a.lastDeliveryDate=o.deliveryDate||a.lastDeliveryDate;a.nextReorderFollowUpDate=o.reorderFollowUpDate||a.nextReorderFollowUpDate;} }
-  saveState(); ui.orderDraft=newOrderDraft(); renderOrders(); alert('Order saved!');
-}
-function loadOrder(id){ const o=getOrder(id); if(o){ui.orderDraft=clone(o);switchTab('orders');} }
-function deleteOrder(id){ if(!confirm('Delete this order?'))return; S.orders=S.orders.filter(x=>x.id!==id); saveState(); renderOrders(); }
-
-
-// ── INVOICE HTML / PDF ──
-function buildInvoiceHtml(order,mode){
-  const t=orderTotals(order),isCustomer=mode==='customer',s=S.settings;
-  const title=isCustomer?'INVOICE':'FULFILLMENT COPY';
-  const itemRows=(order.items||[]).map((item,i)=>{
-    const lt=n(item.quantity)*n(item.unitPrice);
-    const rowBg=i%2===0?'#f7f9fc':'#ffffff';
-    return `<tr style="background:${rowBg}"><td style="text-align:center;color:#64748b">${i+1}</td><td>${esc(item.description||'')}</td><td style="text-align:right">${esc(String(item.quantity))}</td><td style="color:#64748b">${esc(item.unit||'')}</td><td style="text-align:right">${currency(item.unitPrice)}</td><td style="text-align:right;font-weight:700;color:#1a3a6e">${currency(lt)}</td></tr>`;
-  }).join('');
-  const extraBox=isCustomer?`<div style="border:1px solid #d1dae8;border-radius:10px;padding:16px 18px;margin-bottom:16px"><p style="font-size:12px;color:#555">${esc(s.defaultDisclaimer||'')}</p>${order.notes?`<p style="margin-top:8px;font-size:13px;font-style:italic;color:#555">${esc(order.notes)}</p>`:''}</div>`:`<div style="border:2px solid #e8b84b;border-radius:10px;padding:16px 18px;background:#fffdf0"><p style="font-size:11px;font-weight:800;color:#b85c00;margin-bottom:8px">FULFILLMENT — ${esc(s.phoebeName||'Phoebe')}</p><p>${esc(order.fulfillmentNotes||order.internalNotes||'No notes.')}</p><p style="margin-top:8px;color:#1a6b3a;font-weight:700">Est Commission: ${currency(t.commission)}</p></div>`;
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>${esc(order.invoiceNumber)} — ${title}</title>
-  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1f2e;background:#fff;padding:36px 40px}
-  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
-  .title{font-size:32px;font-weight:900;color:${isCustomer?'#1a3a6e':'#b85c00'};letter-spacing:3px}
-  .gold-bar{height:4px;background:linear-gradient(90deg,#1a3a6e,#b8943a,#1a3a6e);margin:14px 0;border-radius:2px}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  thead tr{background:#1a3a6e}th{padding:10px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;text-align:left}
-  td{padding:10px;border-bottom:1px solid #e8eef5}
-  .grand{background:#1a3a6e;color:#fff;font-size:18px;font-weight:800}
-  @media print{body{padding:20px}.gold-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}thead tr,.grand{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-  </style></head><body>
-  <div class="header">
-    <div><div style="font-size:22px;font-weight:900;color:#1a3a6e">ENCORE PETROLEUM, LLC</div><div style="font-size:12px;color:#666">${esc(s.companyAddress||'')}</div><div style="font-size:12px;color:#666">Ph: ${esc(s.companyPhone||'')} &middot; ${esc(s.companyEmail||'')}</div></div>
-    <div style="text-align:right"><div class="title">${title}</div><div style="font-size:13px;color:#444;margin-top:6px"><strong>Invoice #:</strong> ${esc(order.invoiceNumber||'')}</div><div style="font-size:13px;color:#444"><strong>Date:</strong> ${esc(order.orderDate||'')}</div><div style="font-size:13px;color:#444"><strong>Sales:</strong> ${esc(s.salesContact||'')} &mdash; (732) 614-0711</div></div>
-  </div>
-  <div class="gold-bar"></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-    <div style="border:1px solid #d1dae8;border-radius:8px;padding:14px"><p style="font-size:10px;font-weight:800;letter-spacing:.1em;color:#1a3a6e;text-transform:uppercase;margin-bottom:8px">BILL TO</p><p style="font-size:16px;font-weight:700;color:#1a3a6e">${esc(order.customerName||'')}</p>${order.contactName?`<p style="font-size:13px">${esc(order.contactName)}</p>`:''}<p style="font-size:13px;color:#555">${esc(order.address||'')}</p>${order.phone?`<p style="font-size:13px">&#128222; ${esc(order.phone)}</p>`:''}</div>
-    <div style="border:1px solid #d1dae8;border-radius:8px;padding:14px"><p style="font-size:10px;font-weight:800;letter-spacing:.1em;color:#1a3a6e;text-transform:uppercase;margin-bottom:8px">ORDER DETAILS</p><p style="font-size:13px"><strong>Order Date:</strong> ${esc(order.orderDate||'')}</p>${order.deliveryDate?`<p style="font-size:13px"><strong>Delivered:</strong> ${esc(order.deliveryDate)}</p>`:''}<p style="font-size:13px"><strong>Terms:</strong> ${esc(order.paymentTerms||'')}</p></div>
-  </div>
-  <div style="border:1px solid #d1dae8;border-radius:8px;overflow:hidden;margin-bottom:16px">
-    <table><thead><tr><th style="width:30px">#</th><th>Description</th><th style="text-align:right;width:60px">Qty</th><th style="width:70px">Unit</th><th style="text-align:right;width:100px">Unit Price</th><th style="text-align:right;width:110px">Total</th></tr></thead>
-    <tbody>${itemRows}</tbody></table>
-    <div style="display:flex;justify-content:flex-end;padding:14px">
-      <div style="min-width:280px;border:1px solid #d1dae8;border-radius:8px;overflow:hidden">
-        <div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #e8eef5;font-size:13px"><span>Subtotal</span><strong>${currency(t.subtotal)}</strong></div>
-        ${n(order.deliveryCharge)?`<div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #e8eef5;font-size:13px"><span>Delivery</span><strong>${currency(t.delivery)}</strong></div>`:''}
-        ${n(order.drumDeposit)?`<div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #e8eef5;font-size:13px"><span>Drum Deposit</span><strong>${currency(t.deposit)}</strong></div>`:''}
-        <div class="grand" style="display:flex;justify-content:space-between;padding:12px 14px"><span>TOTAL DUE</span><strong>${currency(t.total)}</strong></div>
-      </div>
-    </div>
-  </div>
-  ${extraBox}
-  <div style="margin-top:20px;padding-top:12px;border-top:3px solid #b8943a;display:flex;justify-content:space-between;font-size:11px;color:#666">
-    <div><strong style="font-size:14px;color:#1a3a6e">ENCORE PETROLEUM, LLC</strong><br/>Distributors of Fine Lubricants</div>
-    <div style="text-align:right">${esc(order.invoiceNumber||'')} &middot; ${esc(order.orderDate||'')}<br/>Thank you for your business.</div>
-  </div>
-  </body></html>`;
-}
-
-function openPrint(html){const w=window.open('','_blank');if(!w){alert('Allow pop-ups to print.');return;}w.document.open();w.document.write(html);w.document.close();setTimeout(()=>{w.focus();w.print();},500);}
-function getDraft(){const o=clone(ui.orderDraft);if(!o.invoiceNumber)o.invoiceNumber=(S.settings.invoicePrefix||'')+S.settings.nextInvoiceNumber;return o;}
-function printCustomerPdf(){openPrint(buildInvoiceHtml(getDraft(),'customer'));}
-function printFulfillmentPdf(){openPrint(buildInvoiceHtml(getDraft(),'fulfillment'));}
-function printCustomerPdfById(id){const o=getOrder(id);if(o)openPrint(buildInvoiceHtml(o,'customer'));}
-function printFulfillmentPdfById(id){const o=getOrder(id);if(o)openPrint(buildInvoiceHtml(o,'fulfillment'));}
-function emailCustomer(){const o=getDraft();printCustomerPdf();window.location.href='mailto:'+encodeURIComponent(o.email||'')+'?subject='+encodeURIComponent('Invoice '+o.invoiceNumber+' — '+(o.customerName||''))+'&body='+encodeURIComponent(S.settings.customerEmailMessage||'');}
-function emailPhoebe(){const o=getDraft();printFulfillmentPdf();window.location.href='mailto:'+encodeURIComponent(S.settings.phoebeEmail||'')+'?subject='+encodeURIComponent('Fulfillment Copy '+o.invoiceNumber+' — '+(o.customerName||''))+'&body='+encodeURIComponent(S.settings.fulfillmentEmailMessage||'');}
-
-// ── SETTINGS ──
-function renderSettings(){
-  const s=S.settings;
-  document.getElementById('settings').innerHTML=`
-    <div class="g2">
-      <div class="card">
-        <div class="card-title">Company Info</div>
-        <input id="s_companyName" value="${attr(s.companyName)}" placeholder="Company Name"/>
-        <div class="g2"><input id="s_companyPhone" value="${attr(s.companyPhone)}" placeholder="Company Phone"/><input id="s_companyEmail" value="${attr(s.companyEmail)}" placeholder="Company Email"/></div>
-        <input id="s_companyAddress" value="${attr(s.companyAddress)}" placeholder="Address"/>
-        <div class="g2"><input id="s_salesContact" value="${attr(s.salesContact)}" placeholder="Your Name"/><input id="s_salesEmail" value="${attr(s.salesEmail)}" placeholder="Your Email"/></div>
-        <div class="g2"><input id="s_phoebeName" value="${attr(s.phoebeName)}" placeholder="Phoebe's Name"/><input id="s_phoebeEmail" value="${attr(s.phoebeEmail)}" placeholder="Phoebe's Email"/></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Invoice Defaults</div>
-        <div class="g2"><input id="s_invoicePrefix" value="${attr(s.invoicePrefix)}" placeholder="Invoice Prefix"/><input id="s_nextInvoiceNumber" type="number" value="${attr(s.nextInvoiceNumber)}" placeholder="Next Invoice #"/></div>
-        <input id="s_paymentTerms" value="${attr(s.paymentTerms)}" placeholder="Payment Terms"/>
-        <div class="g4">
-          <div><div class="field-label">Delivery Charge</div><input id="s_defaultDeliveryCharge" type="number" step="0.01" value="${attr(s.defaultDeliveryCharge)}"/></div>
-          <div><div class="field-label">Drum Deposit</div><input id="s_defaultDrumDeposit" type="number" step="0.01" value="${attr(s.defaultDrumDeposit)}"/></div>
-          <div><div class="field-label">Tax Rate %</div><input id="s_defaultTaxRate" type="number" step="0.01" value="${attr(s.defaultTaxRate)}"/></div>
-          <div><div class="field-label">Reorder Days</div><input id="s_reorderDaysDefault" type="number" value="${attr(s.reorderDaysDefault)}"/></div>
-        </div>
-        <div><div class="field-label">Commission Rate %</div><input id="s_commissionRate" type="number" step="0.01" value="${attr(s.commissionRate)}"/></div>
-        <textarea id="s_defaultDisclaimer" placeholder="Default disclaimer">${esc(s.defaultDisclaimer)}</textarea>
-        <textarea id="s_customerEmailMessage" placeholder="Customer email message">${esc(s.customerEmailMessage)}</textarea>
-        <textarea id="s_fulfillmentEmailMessage" placeholder="Phoebe email message">${esc(s.fulfillmentEmailMessage)}</textarea>
-        <button class="btn-gold" onclick="saveSettings()" style="width:100%;margin-top:6px">Save Settings</button>
-      </div>
-    </div>`;
-}
-function saveSettings(){
-  const keys=['companyName','companyPhone','companyEmail','companyAddress','salesContact','salesEmail','phoebeName','phoebeEmail','invoicePrefix','nextInvoiceNumber','paymentTerms','defaultDeliveryCharge','defaultDrumDeposit','defaultTaxRate','reorderDaysDefault','commissionRate','defaultDisclaimer','customerEmailMessage','fulfillmentEmailMessage'];
-  const numKeys=['nextInvoiceNumber','defaultDeliveryCharge','defaultDrumDeposit','defaultTaxRate','reorderDaysDefault','commissionRate'];
-  keys.forEach(k=>{const el=document.getElementById('s_'+k);if(!el)return;S.settings[k]=numKeys.includes(k)?n(el.value):el.value.trim();});
-  saveState();render();alert('Settings saved.');
-}
-
-// ── BACKUP ──
-function renderBackup(){
-  document.getElementById('backup').innerHTML=`
-    <div class="g2">
-      <div class="card">
-        <div class="card-title">Export Backup</div>
-        <p class="muted" style="margin-bottom:10px">Click Export to generate your full data backup.</p>
-        <button class="btn-green" onclick="doExport()">Export All Data</button>
-        <textarea class="backup-area" id="exportOut" readonly placeholder="Click Export to generate…"></textarea>
-      </div>
-      <div class="card">
-        <div class="card-title">Import Backup</div>
-        <p class="muted" style="margin-bottom:10px">Paste a previously exported backup and click Import to restore.</p>
-        <textarea class="backup-area" id="importIn" placeholder="Paste backup JSON here…"></textarea>
-        <div class="row" style="margin-top:8px">
-          <button class="btn-blue" onclick="doImport()">Import Data</button>
-          <button class="btn-red" onclick="doWipe()">Wipe All Data</button>
-        </div>
-      </div>
-    </div>`;
-}
-function doExport(){document.getElementById('exportOut').value=JSON.stringify(S,null,2);}
-function doImport(){
-  const raw=document.getElementById('importIn').value.trim();
-  if(!raw)return alert('Paste backup JSON first.');
-  try{
-    const p=JSON.parse(raw);
-    S={accounts:p.accounts||[],products:p.products||clone(DEFAULT_PRODUCTS),orders:p.orders||[],tasks:p.tasks||clone(DEFAULT_TASKS),settings:{...clone(DEFAULTS.settings),...(p.settings||{})}};
-    saveState();ui.accountDraft=newAccountDraft();ui.productDraft=newProductDraft();ui.orderDraft=newOrderDraft();
-    render();alert('Backup imported successfully.');
-  }catch(e){alert('Invalid JSON — check your backup.');}
-}
-function doWipe(){
-  if(!confirm('Wipe ALL data? This cannot be undone.'))return;
-  localStorage.removeItem(SK);localStorage.removeItem(GOALS_KEY);
-  S={accounts:[],products:clone(DEFAULT_PRODUCTS),orders:[],tasks:clone(DEFAULT_TASKS),settings:clone(DEFAULTS.settings)};
-  ui.accountDraft=newAccountDraft();ui.productDraft=newProductDraft();ui.orderDraft=newOrderDraft();
-  render();
-}
-
-// ── MAIN RENDER + INIT ──
-function render(){
-  const tab=ui.tab;
-  if(tab==='dashboard') renderDashboard();
-  else if(tab==='tasks'){renderTasks();setTimeout(bindTaskFormEvents,100);}
-  else if(tab==='accounts') renderAccounts();
-  else if(tab==='products') renderProducts();
-  else if(tab==='orders') renderOrders();
-  else if(tab==='settings') renderSettings();
-  else if(tab==='backup') renderBackup();
-}
-
-function updateDate(){
-  const d=new Date();
-  document.getElementById('dateDisp').textContent=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-}
-
-updateDate();
-setInterval(updateDate,60000);
-render();
-
-document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&document.activeElement&&['tName','tPhone'].includes(document.activeElement.id)) addTask();
+document.getElementById('hWeekGap').addEventListener('click', updateWeekEarnings);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement.closest('.add-form')) addTask();
 });
+
+load();
+updateDate();
+render();
+setInterval(updateDate, 60000);
 </script>
 </body>
 </html>
